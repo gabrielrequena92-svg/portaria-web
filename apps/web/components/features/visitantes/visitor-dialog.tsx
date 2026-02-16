@@ -37,6 +37,7 @@ interface VisitorDialogProps {
     }
     empresas: { id: string; nome: string }[]
     tiposVisitantes: { id: string; nome: string }[]
+    condominioId?: string
     open?: boolean
     onOpenChange?: (open: boolean) => void
 }
@@ -50,7 +51,7 @@ function SubmitButton() {
     )
 }
 
-export function VisitorDialog({ visitor, empresas, tiposVisitantes, open, onOpenChange }: VisitorDialogProps) {
+export function VisitorDialog({ visitor, empresas, tiposVisitantes, condominioId, open, onOpenChange }: VisitorDialogProps) {
     const [internalOpen, setInternalOpen] = useState(false)
     const [previewUrl, setPreviewUrl] = useState<string | null>(visitor?.foto_url || null)
     const [registeredId, setRegisteredId] = useState<string | null>(null)
@@ -117,7 +118,7 @@ export function VisitorDialog({ visitor, empresas, tiposVisitantes, open, onOpen
                                 value={JSON.stringify({
                                     v: 'v1',
                                     id: registeredId,
-                                    c: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'
+                                    c: condominioId || 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'
                                 })}
                                 size={200}
                                 level="H"

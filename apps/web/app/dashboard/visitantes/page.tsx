@@ -53,6 +53,16 @@ export default async function VisitantesPage(props: {
         .select('id, nome')
         .order('nome')
 
+    // Pegar o condomínio do usuário logado para o QR Code e filtros
+    const { data: { user } } = await supabase.auth.getUser()
+    const { data: profile } = await supabase
+        .from('profiles')
+        .select('condominio_id')
+        .eq('id', user?.id)
+        .single()
+
+    const currentCondominioId = profile?.condominio_id || 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'
+
     if (error) {
         return <div>Erro ao carregar visitantes: {error.message}</div>
     }
@@ -70,13 +80,10 @@ export default async function VisitantesPage(props: {
                         </p>
                     )}
                 </div>
-                {/* Ocultamos o botão aqui pois já existe um botão de Novo Registro no Header Global, 
-                    mas mantemos o Dialog acessível via prop do VisitorList se necessário, 
-                    ou deixamos apenas no header se preferir. 
-                    Por consistência, vamos manter o Dialog mas ele pode ser acionado via URL */}
                 <VisitorDialog
                     empresas={empresas || []}
                     tiposVisitantes={tiposVisitantes || []}
+                    condominioId={currentCondominioId}
                 />
             </div>
 
@@ -85,6 +92,7 @@ export default async function VisitantesPage(props: {
                 empresas={empresas || []}
                 tiposVisitantes={tiposVisitantes || []}
                 autoOpenNew={shouldOpenNew}
+                condominioId={currentCondominioId}
             />
         </div>
     )

@@ -40,7 +40,7 @@ interface CompanyOption {
     nome: string
 }
 
-export function VisitorList({ data, empresas, tiposVisitantes, autoOpenNew = false }: { data: Visitor[], empresas: CompanyOption[], tiposVisitantes: { id: string, nome: string }[], autoOpenNew?: boolean }) {
+export function VisitorList({ data, empresas, tiposVisitantes, condominioId, autoOpenNew = false }: { data: Visitor[], empresas: CompanyOption[], tiposVisitantes: { id: string, nome: string }[], condominioId?: string, autoOpenNew?: boolean }) {
     const [editingVisitor, setEditingVisitor] = useState<Visitor | null>(null)
     const [badgeVisitor, setBadgeVisitor] = useState<Visitor | null>(null)
     const [isDialogOpen, setIsDialogOpen] = useState(false)
@@ -178,6 +178,7 @@ export function VisitorList({ data, empresas, tiposVisitantes, autoOpenNew = fal
                 visitor={editingVisitor || undefined}
                 empresas={empresas}
                 tiposVisitantes={tiposVisitantes}
+                condominioId={condominioId}
                 open={isDialogOpen}
                 onOpenChange={(open) => {
                     setIsDialogOpen(open)
