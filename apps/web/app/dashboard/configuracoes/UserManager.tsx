@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { User, Shield, ShieldAlert, Mail } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { updateUserRole } from '../actions'
+import { updateUserRole } from './actions'
 import { toast } from 'sonner'
 import {
     Select,

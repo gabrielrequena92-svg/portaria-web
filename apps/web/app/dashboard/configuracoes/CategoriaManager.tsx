@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { upsertTipoVisitante, deleteTipoVisitante } from '../actions'
+import { upsertTipoVisitante, deleteTipoVisitante } from './actions'
 import { toast } from 'sonner'
 
 export function CategoriaManager({ tipos }: { tipos: any[] }) {
