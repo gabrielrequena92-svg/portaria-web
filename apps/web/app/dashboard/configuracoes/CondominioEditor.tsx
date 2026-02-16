@@ -18,8 +18,10 @@ export function CondominioEditor({ condominio }: { condominio: any }) {
             await updateCondominio(formData)
             setIsEditing(false)
             toast.success('Dados do condomínio atualizados!')
-        } catch (error) {
-            toast.error('Erro ao atualizar dados.')
+        } catch (error: any) {
+            console.error('Erro ao salvar condomínio:', error)
+            const msg = error.message || 'Erro ao atualizar dados.'
+            toast.error(`Falha: ${msg}. Verifique as permissões (RLS).`)
         } finally {
             setIsLoading(false)
         }

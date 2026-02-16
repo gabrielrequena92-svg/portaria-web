@@ -1,7 +1,8 @@
-'use client'
+"use client"
 
 import { useState } from 'react'
-import { User, Shield, ShieldAlert, Mail } from 'lucide-react'
+
+import { User, Shield, ShieldAlert, Mail, UserPlus, Link, Copy, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { updateUserRole } from './actions'
 import { toast } from 'sonner'
@@ -12,9 +13,19 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
 
 export function UserManager({ profiles, currentUserId }: { profiles: any[], currentUserId: string }) {
     const [isLoading, setIsLoading] = useState<string | null>(null)
+    const [copied, setCopied] = useState(false)
 
     async function handleRoleChange(userId: string, newRole: 'admin' | 'user') {
         setIsLoading(userId)
@@ -28,11 +39,56 @@ export function UserManager({ profiles, currentUserId }: { profiles: any[], curr
         }
     }
 
+    const signUpUrl = typeof window !== 'undefined' ? `${window.location.origin}/login` : ''
+
+    const copyToClipboard = () => {
+        navigator.clipboard.writeText(signUpUrl)
+        setCopied(true)
+        toast.success('Link copiado!')
+        setTimeout(() => setCopied(false), 2000)
+    }
+
     return (
         <div className="space-y-4">
-            <div className="mb-6">
-                <h3 className="text-lg font-bold text-slate-900">Gestão de Equipe</h3>
-                <p className="text-sm text-slate-500">Controle quem pode acessar o painel e quais são suas permissões.</p>
+            <div className="flex justify-between items-center mb-6">
+                <div>
+                    <h3 className="text-lg font-bold text-slate-900">Gestão de Equipe</h3>
+                    <p className="text-sm text-slate-500">Controle quem pode acessar o painel e quais são suas permissões.</p>
+                </div>
+
+                <Dialog>
+                    <DialogTrigger asChild>
+                        <Button className="bg-primary hover:bg-primary/90 rounded-xl gap-2">
+                            <UserPlus className="h-4 w-4" />
+                            Convidar Usuário
+                        </Button>
+                    </DialogTrigger>
+                    <DialogContent className="rounded-3xl border-none shadow-2xl max-w-md">
+                        <DialogHeader>
+                            <DialogTitle>Convidar Membro</DialogTitle>
+                            <DialogDescription>
+                                Peça para a pessoa acessar o link abaixo e criar uma conta.
+                                Depois que ela logar, ela aparecerá na sua lista para que você mude a permissão dela.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <div className="flex items-center gap-2 mt-4 p-3 bg-slate-50 rounded-2xl border border-slate-100">
+                            <Link className="h-4 w-4 text-slate-400 shrink-0" />
+                            <Input
+                                readOnly
+                                value={signUpUrl}
+                                className="bg-transparent border-none focus-visible:ring-0 shadow-none text-xs font-mono"
+                            />
+                            <Button
+                                size="icon"
+                                variant="ghost"
+                                className="h-8 w-8 rounded-lg"
+                                onClick={copyToClipboard}
+                            >
+                                {copied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
+                            </Button>
+                        </div>
+                    </DialogContent>
+                </Dialog>
             </div>
 
             <div className="grid gap-3">
