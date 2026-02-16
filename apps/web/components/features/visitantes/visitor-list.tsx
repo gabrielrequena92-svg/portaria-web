@@ -31,6 +31,7 @@ interface Visitor {
     status: 'ativo' | 'bloqueado' | 'inativo'
     empresa?: { nome: string } | null
     empresa_id?: string | null
+    tipo_visitante?: { nome: string } | null
     condominio_id: string
     condominio?: { id: string }
 }
@@ -78,6 +79,7 @@ export function VisitorList({ data, empresas, tiposVisitantes, condominioId, aut
                             <TableHead className="w-[250px] text-xs font-bold uppercase tracking-wider text-slate-500">Nome</TableHead>
                             <TableHead className="text-xs font-bold uppercase tracking-wider text-slate-500">CPF</TableHead>
                             <TableHead className="text-xs font-bold uppercase tracking-wider text-slate-500">Empresa</TableHead>
+                            <TableHead className="text-xs font-bold uppercase tracking-wider text-slate-500">Categoria</TableHead>
                             <TableHead className="text-xs font-bold uppercase tracking-wider text-slate-500">Status</TableHead>
                             <TableHead className="w-[100px] text-end pr-8">Ações</TableHead>
                         </TableRow>
@@ -103,6 +105,16 @@ export function VisitorList({ data, empresas, tiposVisitantes, condominioId, aut
                                         </div>
                                     ) : (
                                         <span className="text-slate-400 italic">Sem empresa</span>
+                                    )}
+                                </TableCell>
+                                <TableCell className="text-slate-600 font-medium text-sm">
+                                    {visitor.tipo_visitante?.nome ? (
+                                        <div className="flex items-center gap-2">
+                                            <span className="w-1.5 h-1.5 rounded-full bg-purple-400" />
+                                            {visitor.tipo_visitante.nome}
+                                        </div>
+                                    ) : (
+                                        <span className="text-slate-400 italic">Sem categoria</span>
                                     )}
                                 </TableCell>
                                 <TableCell>

@@ -6,7 +6,9 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:image_picker/image_picker.dart';
 import '../controllers/home_viewmodel.dart';
 import '../screens/scanner_screen.dart';
+import '../widgets/access_action_buttons.dart';
 import '../../../../domain/entities/visitante.dart';
+import '../../../../domain/entities/registro.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -276,61 +278,41 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
           const SizedBox(height: 16),
 
-          // 4. Action Buttons
-          Row(
-            children: [
-              Expanded(
-                child: ElevatedButton.icon(
-                  onPressed: () async {
-                    await viewModel.registerAccess(visitante, 'entrada');
-                    if (context.mounted) {
-                      _searchController.clear();
-                      viewModel.loadVisitantes('');
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Entrada de ${visitante.nome} registrada!'),
-                          backgroundColor: Colors.green[700],
-                        ),
-                      );
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green[700],
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  ),
-                  icon: const Icon(Icons.login),
-                  label: const Text('ENTRADA', style: TextStyle(fontWeight: FontWeight.bold)),
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: ElevatedButton.icon(
-                  onPressed: () async {
-                    await viewModel.registerAccess(visitante, 'saida');
-                    if (context.mounted) {
-                      _searchController.clear();
-                      viewModel.loadVisitantes('');
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Saída de ${visitante.nome} registrada!'),
-                          backgroundColor: Colors.red[700],
-                        ),
-                      );
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red[700],
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  ),
-                  icon: const Icon(Icons.logout),
-                  label: const Text('SAÍDA', style: TextStyle(fontWeight: FontWeight.bold)),
-                ),
-              ),
-            ],
+          // 4. Action Buttons with Vehicle Support
+          FutureBuilder<Registro?>(
+            future: viewModel.getUltimoRegistroHoje(visitante.id),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
+
+              return AccessActionButtons(
+                visitante: visitante,
+                ultimoRegistroHoje: snapshot.data,
+                onRegisterAccess: (tipo, placa, fotoPath) async {
+                  await viewModel.registerAccess(
+                    visitante,
+                    tipo,
+                    placaVeiculo: placa,
+                    fotoVeiculoUrl: fotoPath,
+                  );
+                  
+                  if (context.mounted) {
+                    Navigator.pop(context);
+                    _searchController.clear();
+                    viewModel.loadVisitantes('');
+                    
+                    final tipoLabel = tipo == 'entrada' ? 'Entrada' : 'Saída';
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('$tipoLabel de ${visitante.nome} registrada!'),
+                        backgroundColor: tipo == 'entrada' ? Colors.green[700] : Colors.red[700],
+                      ),
+                    );
+                  }
+                },
+              );
+            },
           ),
         ],
       ),

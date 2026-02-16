@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../domain/entities/visitante.dart';
+import '../../../../domain/entities/tipo_visitante.dart';
 
 class VisitanteCard extends StatelessWidget {
   final Visitante visitante;
+  final Map<String, TipoVisitante> tiposVisitantes;
   final VoidCallback onTap;
   final VoidCallback onAction; // Entry or Exit action
 
   const VisitanteCard({
     super.key,
     required this.visitante,
+    required this.tiposVisitantes,
     required this.onTap,
     required this.onAction,
   });
@@ -18,6 +21,11 @@ class VisitanteCard extends StatelessWidget {
   Widget build(BuildContext context) {
     // Web Palette: Card Background white, Text Dark Green/Black
     final colorScheme = Theme.of(context).colorScheme;
+    
+    // Resolve category name from ID
+    final categoriaNome = visitante.tipoVisitanteId != null
+        ? tiposVisitantes[visitante.tipoVisitanteId]?.nome ?? 'Sem categoria'
+        : 'Sem categoria';
 
     return Card(
       elevation: 2,
@@ -72,18 +80,17 @@ class VisitanteCard extends StatelessWidget {
                         fontSize: 12,
                       ),
                     ),
-                  if (visitante.tipoVisitanteId != null)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 4),
-                      child: Text(
-                        'Categoria: ${visitante.tipoVisitanteId}', // TODO: Resolve name if possible
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: colorScheme.primary,
-                          fontWeight: FontWeight.w600,
-                        ),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Text(
+                      'Categoria: $categoriaNome',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: colorScheme.primary,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
+                  ),
                 ],
               ),
             ),

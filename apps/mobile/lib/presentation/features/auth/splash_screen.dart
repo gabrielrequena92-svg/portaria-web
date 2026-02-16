@@ -24,7 +24,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
     // Try Initial Sync
     try {
        // TODO: Get config/ID from storage
-       const condominioId = 'e2e6c50d-8854-464a-aa84-6045120619ca';
+       const condominioId = 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11';
        final syncService = ref.read(syncServiceProvider);
        await syncService.syncAll(condominioId);
     } catch (e) {

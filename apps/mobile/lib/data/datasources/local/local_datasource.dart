@@ -102,6 +102,25 @@ class LocalDatasource {
     return result != null ? RegistroModel.fromDrift(result) : null;
   }
 
+  // Get last registro of visitor TODAY (for entry/exit blocking logic)
+  Future<RegistroModel?> getUltimoRegistroHoje(String visitanteId) async {
+    final now = BrazilTime.now();
+    final startOfDay = DateTime(now.year, now.month, now.day, 0, 0, 0);
+    final endOfDay = DateTime(now.year, now.month, now.day, 23, 59, 59);
+    
+    final query = _db.select(_db.registros)
+      ..where((tbl) => 
+        tbl.visitanteId.equals(visitanteId) &
+        tbl.dataRegistro.isBiggerOrEqualValue(startOfDay) &
+        tbl.dataRegistro.isSmallerOrEqualValue(endOfDay)
+      )
+      ..orderBy([(t) => OrderingTerm(expression: t.dataRegistro, mode: OrderingMode.desc)])
+      ..limit(1);
+    
+    final result = await query.getSingleOrNull();
+    return result != null ? RegistroModel.fromDrift(result) : null;
+  }
+
   // --- Tipos de Visitantes ---
   Future<List<TipoVisitanteModel>> getAllTiposVisitantes() async {
     final query = _db.select(_db.tiposVisitantes);

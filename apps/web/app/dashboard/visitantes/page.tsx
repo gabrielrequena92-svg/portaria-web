@@ -16,6 +16,7 @@ export default async function VisitantesPage(props: {
         .select(`
             *,
             empresa:empresas(nome),
+            tipo_visitante:tipos_visitantes(nome),
             condominio:condominios(id)
         `)
         .order('created_at', { ascending: false })
