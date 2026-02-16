@@ -140,20 +140,6 @@ export default async function RelatoriosPage({
                                         <td className="px-6 py-4">
                                             {registro.placa_veiculo ? (
                                                 <div className="flex items-center gap-3">
-                                                    {registro.foto_veiculo_url ? (
-                                                        <div className="h-10 w-16 bg-slate-100 rounded-lg overflow-hidden border border-slate-200 shadow-sm group/car relative">
-                                                            {/* Thumbnail */}
-                                                            <img
-                                                                src={registro.foto_veiculo_url}
-                                                                alt="Veículo"
-                                                                className="h-full w-full object-cover transform transition-transform group-hover/car:scale-110"
-                                                            />
-                                                        </div>
-                                                    ) : (
-                                                        <div className="h-10 w-10 bg-slate-100 rounded-lg flex items-center justify-center text-slate-400">
-                                                            <Building2 className="h-5 w-5" />
-                                                        </div>
-                                                    )}
                                                     <div className="flex flex-col">
                                                         <span className="text-sm font-black text-slate-800 uppercase tracking-wider font-mono">
                                                             {registro.placa_veiculo}

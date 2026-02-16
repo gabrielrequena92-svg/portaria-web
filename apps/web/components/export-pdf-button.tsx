@@ -12,7 +12,7 @@ interface ExportPdfButtonProps {
 
 export function ExportPdfButton({ data }: ExportPdfButtonProps) {
     const handleExport = () => {
-        const doc = new jsPDF()
+        const doc = new jsPDF({ orientation: 'landscape' })
 
         // Add Title
         doc.setFontSize(20)
@@ -22,14 +22,16 @@ export function ExportPdfButton({ data }: ExportPdfButtonProps) {
         doc.text(`Gerado em: ${formatDateTime(new Date())}`, 14, 30)
 
         // Define table columns
-        const tableColumn = ["Visitante", "CPF", "Empresa", "Tipo", "Data/Hora"]
+        const tableColumn = ["Visitante", "Status", "CPF", "Empresa", "Veículo/Placa", "Tipo", "Data/Hora"]
         const tableRows: any[] = []
 
         data.forEach(reg => {
             const rowData = [
                 reg.visitante_nome_snapshot,
-                reg.visitante_cpf_snapshot,
+                (reg.status_snapshot || '-').toUpperCase(),
+                reg.visitante_cpf_snapshot || '-',
                 reg.empresa_nome_snapshot || '-',
+                reg.placa_veiculo || '-',
                 reg.tipo.toUpperCase(),
                 formatDateTime(reg.data_registro)
             ]
