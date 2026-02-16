@@ -1,0 +1,43 @@
+Analyzing mobile...                                             
+
+   info - Don't invoke 'print' in production code - lib\data\datasources\remote\supabase_datasource.dart:62:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\data\datasources\remote\supabase_datasource.dart:77:7 - avoid_print
+   info - Parameters ''id', 'condominioId', 'nome', 'cnpj', 'status', and 'syncStatus'' could be super parameters - lib\data\models\empresa_model.dart:7:3 - use_super_parameters
+   info - Parameters ''id', 'condominioId', 'visitanteId', 'empresaId', 'tipo', 'dataRegistro', 'visitanteNomeSnapshot', 'visitanteCpfSnapshot', 'visitorPhotoSnapshot', 'empresaNomeSnapshot', and 'syncStatus'' could be super parameters - lib\data\models\registro_model.dart:7:3 - use_super_parameters
+  error - 'placaVeiculo' isn't a field in the enclosing class - lib\data\models\registro_model.dart:14:5 - initializing_formal_for_non_existent_field
+  error - 'fotoVeiculoUrl' isn't a field in the enclosing class - lib\data\models\registro_model.dart:15:5 - initializing_formal_for_non_existent_field
+   info - Parameters ''id', 'condominioId', 'nome', and 'createdAt'' could be super parameters - lib\data\models\tipo_visitante_model.dart:6:3 - use_super_parameters
+   info - Parameters ''id', 'condominioId', 'empresaId', 'tipoVisitanteId', 'nome', 'documento', 'fotoUrl', 'status', and 'syncStatus'' could be super parameters - lib\data\models\visitante_model.dart:7:3 - use_super_parameters
+warning - Unused import: '../models/empresa_model.dart' - lib\data\repositories\empresa_repository_impl.dart:5:8 - unused_import
+   info - Don't invoke 'print' in production code - lib\data\repositories\registro_repository_impl.dart:62:9 - avoid_print
+warning - Unused import: '../models/tipo_visitante_model.dart' - lib\data\repositories\tipo_visitante_repository_impl.dart:5:8 - unused_import
+   info - Don't invoke 'print' in production code - lib\data\repositories\tipo_visitante_repository_impl.dart:24:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\data\repositories\visitante_repository_impl.dart:65:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\data\repositories\visitante_repository_impl.dart:74:8 - avoid_print
+   info - Don't invoke 'print' in production code - lib\domain\usecases\sync_service.dart:38:9 - avoid_print
+warning - Unused import: '../../../../data/models/visitante_model.dart' - lib\presentation\features\visitors\controllers\home_viewmodel.dart:6:8 - unused_import
+warning - Unused import: '../../../../domain/repositories/tipo_visitante_repository.dart' - lib\presentation\features\visitors\controllers\home_viewmodel.dart:12:8 - unused_import
+   info - Don't invoke 'print' in production code - lib\presentation\features\visitors\controllers\home_viewmodel.dart:72:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\presentation\features\visitors\controllers\home_viewmodel.dart:84:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\presentation\features\visitors\controllers\home_viewmodel.dart:202:7 - avoid_print
+warning - Unused import: 'dart:io' - lib\presentation\features\visitors\screens\home_screen.dart:1:8 - unused_import
+   info - Unnecessary use of multiple underscores - lib\presentation\features\visitors\screens\home_screen.dart:119:51 - unnecessary_underscores
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\presentation\features\visitors\screens\home_screen.dart:138:36 - use_build_context_synchronously
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\features\visitors\screens\home_screen.dart:197:33 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\features\visitors\screens\home_screen.dart:218:39 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\features\visitors\screens\home_screen.dart:269:46 - deprecated_member_use
+warning - The declaration '_showSuccessSnackBar' isn't referenced - lib\presentation\features\visitors\screens\home_screen.dart:391:8 - unused_element
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\features\visitors\screens\home_screen.dart:462:43 - deprecated_member_use
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\presentation\features\visitors\screens\home_screen.dart:571:41 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\presentation\features\visitors\screens\home_screen.dart:572:48 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\presentation\features\visitors\screens\home_screen.dart:580:46 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\presentation\features\visitors\screens\home_screen.dart:606:41 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\presentation\features\visitors\screens\home_screen.dart:608:50 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\presentation\features\visitors\screens\home_screen.dart:615:50 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\presentation\features\visitors\screens\home_screen.dart:624:46 - use_build_context_synchronously
+warning - Unused import: '../../../../domain/entities/visitante.dart' - lib\presentation\features\visitors\screens\scanner_screen.dart:6:8 - unused_import
+warning - Dead code - lib\presentation\features\visitors\screens\scanner_screen.dart:35:43 - dead_code
+warning - The left operand can't be null, so the right operand is never executed - lib\presentation\features\visitors\screens\scanner_screen.dart:35:46 - dead_null_aware_expression
+warning - The value of the local variable 'viewModel' isn't used - test\features\visitors\home_viewmodel_test.dart:47:13 - unused_local_variable
+
+39 issues found. (ran in 17.7s)

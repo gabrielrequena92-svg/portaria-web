@@ -1,0 +1,31 @@
+# Roadmap do Projeto: Sistema de Controle de Visitantes (SaaS)
+
+- [x] Planejamento e Arquitetura <!-- id: 0 -->
+    - [x] Definição da Arquitetura de Alto Nível e Stack Tecnológica <!-- id: 1 -->
+    - [x] Estratégia de Sincronização Offline-First (Sync Manual) <!-- id: 2 -->
+    - [x] Modelagem de Banco de Dados (Supabase/PostgreSQL) <!-- id: 3 -->
+    - [x] Definição de Estrutura de Pastas (Flutter & Next.js) <!-- id: 4 -->
+- [x] Backend (Supabase) <!-- id: 5 -->
+    - [x] Criação do Schema SQL (Tabelas, Relações, Tipos) <!-- id: 6 -->
+    - [x] Configuração de Segurança RLS (Row Level Security) <!-- id: 7 -->
+    - [x] Triggers e Functions para Histórico e Sync <!-- id: 8 -->
+- [x] Desenvolvimento Web (Next.js) <!-- id: 9 -->
+    - [x] Configuração Inicial e Estrutura de Diretórios <!-- id: 10 -->
+    - [x] Implementação do Auth e Gestão de Sessão <!-- id: 11 -->
+    - [x] CRUD Empresas e Visitantes <!-- id: 12 -->
+        - [x] CRUD Empresas
+        - [x] CRUD Visitantes (Upload de Foto)
+        - [x] Regra de Negócio: Bloqueio em Cascata (Trigger)
+    - [x] Dashboard e Relatórios <!-- id: 13 -->
+        - [x] Home Dashboard (Funcional - Layout Básico)
+        - [x] Deploy no Vercel
+        - [x] Refinamento Visual UI/UX (Green Theme Customizado)
+        - [x] Relatórios Detalhados
+- [x] Desenvolvimento Mobile (Flutter) <!-- id: 14 -->
+    - [x] Configuração Inicial e Estrutura (Clean Architecture) <!-- id: 15 -->
+    - [x] Implementação de Banco Local (Drift/SQLite) <!-- id: 16 -->
+    - [x] Mecanismo de Sincronização (Upload/Download) <!-- id: 17 -->
+    - [x] Interface do Porteiro e Fluxo de Registro <!-- id: 18 -->
+- [/] Validação e Entrega <!-- id: 19 -->
+    - [x] Testes de Sincronização e Conflitos <!-- id: 20 -->
+    - [ ] Validação de Segurança e Performance <!-- id: 21 -->

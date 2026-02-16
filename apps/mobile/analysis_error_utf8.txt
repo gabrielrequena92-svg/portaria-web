@@ -1,0 +1,112 @@
+﻿Analyzing mobile...                                             
+
+   info - Parameters ''id', 'condominioId', 'nome', 'cnpj', 'status', and 'syncStatus'' could be super parameters - lib\data\models\empresa_model.dart:6:3 - use_super_parameters
+   info - Parameters ''id', 'condominioId', 'visitanteId', 'tipo', 'dataRegistro', 'visitanteNomeSnapshot', 'visitanteDocSnapshot', 'empresaNomeSnapshot', and 'syncStatus'' could be super parameters - lib\data\models\registro_model.dart:6:3 - use_super_parameters
+   info - Parameters ''id', 'condominioId', 'empresaId', 'nome', 'documento', 'fotoUrl', 'status', and 'syncStatus'' could be super parameters - lib\data\models\visitante_model.dart:6:3 - use_super_parameters
+warning - Unused import: '../models/empresa_model.dart' - lib\data\repositories\empresa_repository_impl.dart:5:8 - unused_import
+   info - Don't invoke 'print' in production code - lib\data\repositories\registro_repository_impl.dart:41:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\data\repositories\visitante_repository_impl.dart:48:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\data\repositories\visitante_repository_impl.dart:57:8 - avoid_print
+warning - Unused import: '../../../../data/models/visitante_model.dart' - lib\presentation\features\visitors\controllers\home_viewmodel.dart:3:8 - unused_import
+  error - 'visitantes' isn't a field in the enclosing class - lib\presentation\features\visitors\controllers\home_viewmodel.dart:12:5 - initializing_formal_for_non_existent_field
+  error - 'isLoading' isn't a field in the enclosing class - lib\presentation\features\visitors\controllers\home_viewmodel.dart:13:5 - initializing_formal_for_non_existent_field
+  error - 'isSyncing' isn't a field in the enclosing class - lib\presentation\features\visitors\controllers\home_viewmodel.dart:14:5 - initializing_formal_for_non_existent_field
+  error - 'errorMessage' isn't a field in the enclosing class - lib\presentation\features\visitors\controllers\home_viewmodel.dart:15:5 - initializing_formal_for_non_existent_field
+  error - 'hasSearched' isn't a field in the enclosing class - lib\presentation\features\visitors\controllers\home_viewmodel.dart:16:5 - initializing_formal_for_non_existent_field
+  error - The getter 'visitantes' isn't defined for the type 'HomeState' - lib\presentation\features\visitors\controllers\home_viewmodel.dart:29:38 - undefined_getter
+  error - The getter 'isLoading' isn't defined for the type 'HomeState' - lib\presentation\features\visitors\controllers\home_viewmodel.dart:30:36 - undefined_getter
+  error - The getter 'isSyncing' isn't defined for the type 'HomeState' - lib\presentation\features\visitors\controllers\home_viewmodel.dart:31:36 - undefined_getter
+  error - The getter 'errorMessage' isn't defined for the type 'HomeState' - lib\presentation\features\visitors\controllers\home_viewmodel.dart:32:42 - undefined_getter
+  error - The getter 'hasSearched' isn't defined for the type 'HomeState' - lib\presentation\features\visitors\controllers\home_viewmodel.dart:33:40 - undefined_getter
+   info - Don't invoke 'print' in production code - lib\presentation\features\visitors\controllers\home_viewmodel.dart:54:7 - avoid_print
+  error - The getter 'isSyncing' isn't defined for the type 'HomeState' - lib\presentation\features\visitors\controllers\home_viewmodel.dart:87:15 - undefined_getter
+  error - The class '_HomeScreenState' doesn't have an unnamed constructor - lib\presentation\features\visitors\screens\home_screen.dart:10:46 - new_with_undefined_constructor_default
+  error - The name 'Text' isn't a class - lib\presentation\features\visitors\screens\home_screen.dart:24:22 - creation_with_non_type
+  error - The getter 'isSyncing' isn't defined for the type 'HomeState' - lib\presentation\features\visitors\screens\home_screen.dart:33:30 - undefined_getter
+  error - Methods can't be invoked in constant expressions - lib\presentation\features\visitors\screens\home_screen.dart:37:47 - const_eval_method_invocation
+  error - The getter 'isSyncing' isn't defined for the type 'HomeState' - lib\presentation\features\visitors\screens\home_screen.dart:41:25 - undefined_getter
+  error - The getter 'errorMessage' isn't defined for the type 'HomeState' - lib\presentation\features\visitors\screens\home_screen.dart:89:21 - undefined_getter
+  error - The getter 'errorMessage' isn't defined for the type 'HomeState' - lib\presentation\features\visitors\screens\home_screen.dart:95:23 - undefined_getter
+  error - The named parameter 'textAlign' isn't defined - lib\presentation\features\visitors\screens\home_screen.dart:97:17 - undefined_named_parameter
+  error - The getter 'isLoading' isn't defined for the type 'HomeState' - lib\presentation\features\visitors\screens\home_screen.dart:103:26 - undefined_getter
+  error - The getter 'hasSearched' isn't defined for the type 'HomeState' - lib\presentation\features\visitors\screens\home_screen.dart:105:26 - undefined_getter
+  error - The getter 'visitantes' isn't defined for the type 'HomeState' - lib\presentation\features\visitors\screens\home_screen.dart:107:29 - undefined_getter
+  error - The getter 'visitantes' isn't defined for the type 'HomeState' - lib\presentation\features\visitors\screens\home_screen.dart:111:46 - undefined_getter
+   info - Unnecessary use of multiple underscores - lib\presentation\features\visitors\screens\home_screen.dart:112:51 - unnecessary_underscores
+  error - The getter 'visitantes' isn't defined for the type 'HomeState' - lib\presentation\features\visitors\screens\home_screen.dart:114:55 - undefined_getter
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\features\visitors\screens\home_screen.dart:174:33 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\features\visitors\screens\home_screen.dart:195:39 - deprecated_member_use
+  error - The named parameter 'textAlign' isn't defined - lib\presentation\features\visitors\screens\home_screen.dart:218:13 - undefined_named_parameter
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\features\visitors\screens\home_screen.dart:245:46 - deprecated_member_use
+  error - The name 'Text' isn't a class - lib\presentation\features\visitors\screens\home_screen.dart:272:32 - creation_with_non_type
+  error - The named parameter 'child' is required, but there's no corresponding argument - lib\presentation\features\visitors\screens\home_screen.dart:277:24 - missing_required_argument
+  error - Expected to find ';' - lib\presentation\features\visitors\screens\home_screen.dart:284:21 - expected_token
+  error - Expected to find '}' - lib\presentation\features\visitors\screens\home_screen.dart:284:21 - expected_token
+  error - Expected to find ')' - lib\presentation\features\visitors\screens\home_screen.dart:285:19 - expected_token
+  error - Expected to find ']' - lib\presentation\features\visitors\screens\home_screen.dart:285:19 - expected_token
+  error - Expected a class member - lib\presentation\features\visitors\screens\home_screen.dart:285:20 - expected_class_member
+   info - An uninitialized field should have an explicit type annotation - lib\presentation\features\visitors\screens\home_screen.dart:286:19 - prefer_typing_uninitialized_variables
+   info - Missing type annotation - lib\presentation\features\visitors\screens\home_screen.dart:286:19 - strict_top_level_inference
+  error - Expected to find ';' - lib\presentation\features\visitors\screens\home_screen.dart:286:19 - expected_token
+  error - Variables must be declared using the keywords 'const', 'final', 'var' or a type name - lib\presentation\features\visitors\screens\home_screen.dart:286:19 - missing_const_final_var_or_type
+  error - Expected a class member - lib\presentation\features\visitors\screens\home_screen.dart:286:24 - expected_class_member
+  error - The name of a constructor must match the name of the enclosing class - lib\presentation\features\visitors\screens\home_screen.dart:286:26 - invalid_constructor_name
+   info - Missing type annotation - lib\presentation\features\visitors\screens\home_screen.dart:287:21 - strict_top_level_inference
+warning - A value for optional parameter 'backgroundColor' isn't ever given - lib\presentation\features\visitors\screens\home_screen.dart:287:21 - unused_element_parameter
+  error - Named parameters must be enclosed in curly braces ('{' and '}') - lib\presentation\features\visitors\screens\home_screen.dart:287:36 - named_parameter_outside_group
+  error - Using a colon as the separator before a default value is no longer supported - lib\presentation\features\visitors\screens\home_screen.dart:287:36 - obsolete_colon_for_default_value
+  error - The default value of an optional parameter must be constant - lib\presentation\features\visitors\screens\home_screen.dart:287:38 - non_constant_default_value
+   info - Missing type annotation - lib\presentation\features\visitors\screens\home_screen.dart:288:21 - strict_top_level_inference
+warning - A value for optional parameter 'foregroundColor' isn't ever given - lib\presentation\features\visitors\screens\home_screen.dart:288:21 - unused_element_parameter
+  error - Named parameters must be enclosed in curly braces ('{' and '}') - lib\presentation\features\visitors\screens\home_screen.dart:288:36 - named_parameter_outside_group
+  error - Using a colon as the separator before a default value is no longer supported - lib\presentation\features\visitors\screens\home_screen.dart:288:36 - obsolete_colon_for_default_value
+   info - Missing type annotation - lib\presentation\features\visitors\screens\home_screen.dart:289:21 - strict_top_level_inference
+warning - A value for optional parameter 'padding' isn't ever given - lib\presentation\features\visitors\screens\home_screen.dart:289:21 - unused_element_parameter
+  error - Named parameters must be enclosed in curly braces ('{' and '}') - lib\presentation\features\visitors\screens\home_screen.dart:289:28 - named_parameter_outside_group
+  error - Using a colon as the separator before a default value is no longer supported - lib\presentation\features\visitors\screens\home_screen.dart:289:28 - obsolete_colon_for_default_value
+   info - Missing type annotation - lib\presentation\features\visitors\screens\home_screen.dart:290:21 - strict_top_level_inference
+warning - A value for optional parameter 'shape' isn't ever given - lib\presentation\features\visitors\screens\home_screen.dart:290:21 - unused_element_parameter
+  error - Named parameters must be enclosed in curly braces ('{' and '}') - lib\presentation\features\visitors\screens\home_screen.dart:290:26 - named_parameter_outside_group
+  error - Using a colon as the separator before a default value is no longer supported - lib\presentation\features\visitors\screens\home_screen.dart:290:26 - obsolete_colon_for_default_value
+  error - The default value of an optional parameter must be constant - lib\presentation\features\visitors\screens\home_screen.dart:290:28 - non_constant_default_value
+   info - Empty constructor bodies should be written using a ';' rather than '{}' - lib\presentation\features\visitors\screens\home_screen.dart:291:20 - empty_constructor_bodies
+  error - A function body must be provided - lib\presentation\features\visitors\screens\home_screen.dart:291:20 - missing_function_body
+  error - Expected a class member - lib\presentation\features\visitors\screens\home_screen.dart:291:20 - expected_class_member
+   info - An uninitialized field should have an explicit type annotation - lib\presentation\features\visitors\screens\home_screen.dart:292:19 - prefer_typing_uninitialized_variables
+   info - Missing type annotation - lib\presentation\features\visitors\screens\home_screen.dart:292:19 - strict_top_level_inference
+  error - Expected to find ';' - lib\presentation\features\visitors\screens\home_screen.dart:292:19 - expected_token
+  error - Variables must be declared using the keywords 'const', 'final', 'var' or a type name - lib\presentation\features\visitors\screens\home_screen.dart:292:19 - missing_const_final_var_or_type
+  error - Expected a class member - lib\presentation\features\visitors\screens\home_screen.dart:292:24 - expected_class_member
+  error - Getters, setters and methods can't be declared to be 'const' - lib\presentation\features\visitors\screens\home_screen.dart:292:26 - const_method
+   info - Missing type annotation - lib\presentation\features\visitors\screens\home_screen.dart:292:32 - strict_top_level_inference
+   info - The variable name 'Text' isn't a lowerCamelCase identifier - lib\presentation\features\visitors\screens\home_screen.dart:292:32 - non_constant_identifier_names
+  error - Expected an identifier - lib\presentation\features\visitors\screens\home_screen.dart:292:37 - missing_identifier
+   info - Missing type annotation - lib\presentation\features\visitors\screens\home_screen.dart:292:46 - strict_top_level_inference
+  error - Named parameters must be enclosed in curly braces ('{' and '}') - lib\presentation\features\visitors\screens\home_screen.dart:292:51 - named_parameter_outside_group
+  error - Using a colon as the separator before a default value is no longer supported - lib\presentation\features\visitors\screens\home_screen.dart:292:51 - obsolete_colon_for_default_value
+  error - The default value of an optional parameter must be constant - lib\presentation\features\visitors\screens\home_screen.dart:292:53 - non_constant_default_value
+  error - A function body must be provided - lib\presentation\features\visitors\screens\home_screen.dart:292:106 - missing_function_body
+  error - Expected a class member - lib\presentation\features\visitors\screens\home_screen.dart:292:106 - expected_class_member
+  error - Expected a class member - lib\presentation\features\visitors\screens\home_screen.dart:293:17 - expected_class_member
+  error - Expected a class member - lib\presentation\features\visitors\screens\home_screen.dart:293:18 - expected_class_member
+  error - Expected a class member - lib\presentation\features\visitors\screens\home_screen.dart:294:15 - expected_class_member
+  error - Expected a class member - lib\presentation\features\visitors\screens\home_screen.dart:294:16 - expected_class_member
+  error - Expected a class member - lib\presentation\features\visitors\screens\home_screen.dart:295:13 - expected_class_member
+  error - Expected a class member - lib\presentation\features\visitors\screens\home_screen.dart:295:14 - expected_class_member
+  error - Expected a class member - lib\presentation\features\visitors\screens\home_screen.dart:296:11 - expected_class_member
+  error - Expected a class member - lib\presentation\features\visitors\screens\home_screen.dart:296:12 - expected_class_member
+  error - Expected a class member - lib\presentation\features\visitors\screens\home_screen.dart:297:9 - expected_class_member
+  error - Expected a class member - lib\presentation\features\visitors\screens\home_screen.dart:297:10 - expected_class_member
+  error - Expected a class member - lib\presentation\features\visitors\screens\home_screen.dart:298:7 - expected_class_member
+  error - Expected a class member - lib\presentation\features\visitors\screens\home_screen.dart:298:8 - expected_class_member
+warning - The declaration '_showActionDialog' isn't referenced - lib\presentation\features\visitors\screens\home_screen.dart:300:8 - unused_element
+  error - The name 'Text' isn't a class - lib\presentation\features\visitors\screens\home_screen.dart:337:36 - creation_with_non_type
+  error - The name 'Text' isn't a class - lib\presentation\features\visitors\screens\home_screen.dart:361:36 - creation_with_non_type
+warning - The value of the local variable 'viewModel' isn't used - test\features\visitors\home_viewmodel_test.dart:47:13 - unused_local_variable
+  error - The getter 'isLoading' isn't defined for the type 'HomeState' - test\features\visitors\home_viewmodel_test.dart:53:20 - undefined_getter
+  error - The getter 'visitantes' isn't defined for the type 'HomeState' - test\features\visitors\home_viewmodel_test.dart:54:20 - undefined_getter
+  error - The getter 'visitantes' isn't defined for the type 'HomeState' - test\features\visitors\home_viewmodel_test.dart:75:20 - undefined_getter
+  error - The getter 'visitantes' isn't defined for the type 'HomeState' - test\features\visitors\home_viewmodel_test.dart:76:20 - undefined_getter
+  error - The getter 'visitantes' isn't defined for the type 'HomeState' - test\features\visitors\home_viewmodel_test.dart:92:20 - undefined_getter
+  error - The getter 'visitantes' isn't defined for the type 'HomeState' - test\features\visitors\home_viewmodel_test.dart:93:20 - undefined_getter
+

@@ -1,0 +1,120 @@
+# Estrutura do Projeto & Padrões de Código
+
+Este documento define a organização física do código-fonte para garantir escalabilidade e manutenibilidade a longo prazo.
+
+## 1. Organização do Repositório (Monorepo Lógico)
+
+Recomendamos manter ambos os projetos no mesmo repositório para facilitar o compartilhamento de tipos (se possível via scripts) e gestão de versão.
+
+```
+/ (root)
+├── apps/
+│   ├── mobile/     # Projeto Flutter (App Portaria)
+│   └── web/        # Projeto Next.js (Admin Dashboard)
+├── docs/           # Documentação de Arquitetura e Manuais
+└── README.md
+```
+
+---
+
+## 2. Estrutura Mobile (Flutter)
+
+O app seguirá a **Clean Architecture** adaptada para Flutter, com foco em *Feature-First* (divisão por funcionalidades) para facilitar a escalabilidade.
+
+**Gerenciamento de Estado**: Riverpod (Providers globais e locais).
+**Banco Local**: Drift (SQLite).
+
+```
+apps/mobile/lib/
+├── main.dart                   # Ponto de entrada (Configuração de flavors, Firebase, etc.)
+├── app_widget.dart             # Configuração do MaterialApp, Rotas e Tema
+│
+├── core/                       # Código compartilhado e utilitários globais
+│   ├── config/                 # Variáveis de ambiente, flavor config
+│   ├── constants/              # Strings, Assets, API Endpoints
+│   ├── errors/                 # Classes de erro customizadas (Failure)
+│   ├── theme/                  # Design System (Cores, Texto, Componentes bases)
+│   ├── utils/                  # Formatadores, Validadores (CPF, Data)
+│   └── router/                 # Configuração de rotas (GoRouter)
+│
+├── data/                       # Camada de Dados (Data providers)
+│   ├── database/               # Configuração do Drift (Tabelas locais)
+│   │   ├── app_database.dart   
+│   │   └── tables/             # Definição das tabelas (Visitantes, Empresas, Logs)
+│   ├── datasources/            # Fontes de dados
+│   │   ├── local/              # Implementação do acesso ao SQLite
+│   │   └── remote/             # Implementação do cliente Supabase
+│   ├── models/                 # DTOs (Data Transfer Objects) com `fromJson`/`toJson`
+│   └── repositories/           # Implementação concreta dos repositórios
+│
+├── domain/                     # Camada de Domínio (Pura, sem dependência de Flutter)
+│   ├── entities/               # Objetos de negócio puros (Visitante, Empresa)
+│   ├── repositories/           # Contratos (Interfaces) dos repositórios
+│   └── usecases/               # Regras de negócio unitárias (Ex: "SincronizarDadosUseCase")
+│
+└── presentation/               # Camada de Interface (UI)
+    ├── features/               # Funcionalidades isoladas
+    │   ├── auth/               # Login do dispositivo/porteiro
+    │   ├── home/               # Tela principal
+    │   ├── sync/               # Tela de status da sincronização
+    │   └── visitors/           # Fluxo de registro de entrada/saída
+    │       ├── controllers/    # Riverpod Notifiers
+    │       ├── screens/        # Telas completas
+    │       └── widgets/        # Widgets específicos desta feature
+    │
+    └── shared/                 # Widgets reutilizáveis em múltiplas features (Botões, Inputs)
+```
+
+### Decisões Técnicas (Mobile)
+*   **`domain/` isolado**: Garante que as regras de negócio não dependam de bibliotecas externas (como o próprio Flutter ou Supabase).
+*   **`data/models` vs `domain/entities`**: Models estendem entidades e adicionam lógica de serialização (JSON/DB). Isso protege a lógica de mudanças na API.
+*   **Drift (SQLite)**: Escolhido por ser type-safe em Dart, evitando erros de SQL em tempo de execução comuns no `sqflite`.
+
+---
+
+## 3. Estrutura Web (Next.js)
+
+O painel administrativo usará **Next.js 14+ (App Router)** com **Server Actions** para mutações e **React Query** para fetch de dados (caching e revalidação inteligente).
+
+**UI Library**: Shadcn/ui (Radix UI + Tailwind CSS).
+
+```
+apps/web/
+├── app/                        # App Router (Rotas e Layouts)
+│   ├── (auth)/                 # Grupo de rotas de autenticação (login, senha)
+│   │   └── login/page.tsx
+│   ├── (dashboard)/            # Grupo de rotas protegidas (Layout com Sidebar)
+│   │   ├── layout.tsx          # Sidebar e Header persistentes
+│   │   ├── page.tsx            # Dashboard Home
+│   │   ├── empresas/           # CRUD Empresas
+│   │   ├── visitantes/         # CRUD Visitantes
+│   │   └── relatorios/         # Visualização de Histórico
+│   ├── api/                    # Route Handlers (Webhooks, downloads, etc)
+│   ├── globals.css             # Tailwind imports e variáveis CSS
+│   └── provider.tsx            # QueryClientProvider, ThemeProvider
+│
+├── components/                 # Componentes React
+│   ├── ui/                     # Shadcn primitives (Button, Input, Table) - "Burro"
+│   ├── shared/                 # Componentes reutilizáveis do projeto (Header, Sidebar)
+│   └── features/               # Componentes complexos de negócio (VisitorForm, ReportTable)
+│
+├── lib/                        # Utilitários e Configurações
+│   ├── supabase/               # Instância do cliente Supabase (Client & Server)
+│   ├── utils.ts                # cn(), formatadores
+│   └── validators/             # Schemas Zod para validação de formulários
+│
+├── services/                   # Camada de Serviço (Abstração de chamadas ao Supabase)
+│   ├── auth-service.ts
+│   ├── company-service.ts
+│   └── visitor-service.ts
+│
+├── types/                      # Definições de Tipos TypeScript (Interfaces globais)
+│   └── database.types.ts       # Gerado automaticamente pelo Supabase CLI
+│
+└── middleware.ts               # Proteção de rotas (Redireciona se não logado)
+```
+
+### Decisões Técnicas (Web)
+*   **`(groups)` no App Router**: O uso de parêntese `(auth)` e `(dashboard)` permite criar layouts diferentes para login e área logada sem afetar a URL.
+*   **`services/`**: Centraliza a lógica de busca de dados. Embora Server Actions possam ir direto no banco, ter serviços facilita a reutilização e testes.
+*   **Zod**: Validação de schema rigorosa tanto no front (fomulários) quanto no back (antes de enviar ao banco).

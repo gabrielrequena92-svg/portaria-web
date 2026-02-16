@@ -1,0 +1,50 @@
+# Guia de Teste Mobile (Android Studio) 📱
+
+Este guia ajuda você a rodar o aplicativo Portaria SaaS no seu emulador ou dispositivo físico via Android Studio.
+
+## 1. Abrindo o Projeto Corretamente
+O erro mais comum é abrir a pasta errada.
+1. Abra o **Android Studio**.
+2. Clique em **Open**.
+3. Navegue até: `Portaria > apps > mobile > android`.
+   * **IMPORTANTE:** Selecione a pasta `android` dentro de `mobile`, não a raiz do projeto.
+   * O ícone deve ter o símbolo do Android (robô verde).
+
+## 2. Configurando o Emulador
+1. No Android Studio, vá em **Device Manager** (ícone de celular na barra lateral direita ou topo).
+2. Se não tiver nenhum dispositivo, clique em **Create Device**.
+3. Escolha um modelo (ex: Pixel 6) e clique em Next.
+4. Escolha uma imagem de sistema (Recomendamos **Android 11 (R)** ou superior).
+   * Se houver um ícone de download ao lado, clique para baixar primeiro.
+5. Finalize e clique no botão **Play (▶)** para iniciar o emulador.
+
+## 3. Rodando o App
+Você tem duas opções:
+
+### Opção A: Via Terminal (Mais Rápido)
+Com o emulador aberto, volte ao seu terminal (VS Code ou CMD) na pasta `apps/mobile` e rode:
+```bash
+flutter run
+```
+* O app será instalado e abrirá no emulador.
+* Pressione `r` no terminal para hot-reload (atualizar tela sem reiniciar).
+* Pressione `R` para hot-restart (reiniciar app do zero).
+
+### Opção B: Via Android Studio (Visual)
+1. Espere o Gradle sincronizar (barra de progresso no fundo).
+2. Selecione o dispositivo no topo da janela.
+3. Clique no botão **Run (▶)** verde no topo.
+4. Acompanhe o log na aba "Run" na parte inferior.
+
+## 4. O que Testar (Roteiro)
+1. **Sync Inicial:** Assim que abrir (Tela com Logo), aguarde o carregamento.
+2. **Lista de Visitantes:** Verifique se apareceram nomes (vindos do banco).
+3. **Busca:** Tente digitar um nome na barra de busca.
+4. **Registro:**
+   * Clique no botão de ação (Direita do card).
+   * Escolha **ENTRADA**.
+   * Veja se apareceu a mensagem de sucesso "Entrada registrada!".
+   
+## Solução de Problemas Comuns
+* **Erro "Gradle exec failed":** Geralmente é falta de JDK. Verifique se o JDK 17 está instalado.
+* **Tela Branca:** O Sync pode estar demorando. Olhe o terminal para ver logs de erro.

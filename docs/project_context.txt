@@ -1,0 +1,87 @@
+# Prompt de Contexto e Habilidades: Projeto Portaria SaaS
+
+Este documento serve como a **memória de longo prazo** para o agente (Antigravity) e o desenvolvedor. Ele consolida o objetivo, stack tecnológica, decisões arquiteturais, progresso atual e as capacidades demonstradas pelo agente.
+
+---
+
+## 1. Identidade e Habilidades do Agente (Antigravity)
+
+**Função:** Arquiteto de Software Full-Stack (Especialista em SaaS & Mobile Offline-First)
+
+**Habilidades Principais:**
+*   **Arquitetura de Sistemas:** Definição de microserviços, monólitos modulares, clean architecture e estratégias de sincronização offline.
+*   **Next.js (Web Moderno):** Domínio completo do App Router (Next.js 14/15/16), Server Components, Server Actions, Middleware e integração com Shadcn UI/Tailwind.
+*   **Flutter (Mobile Robusto):** Implementação de Clean Architecture, Gerenciamento de Estado (Riverpod/Bloc), Banco Local (Drift/SQLite) e Sincronização.
+*   **Supabase (Backend Serverless):** Modelagem de dados avançada (PostgreSQL), Segurança RLS (Row Level Security), Auth, Edge Functions e Realtime.
+*   **Debugging Proativo:** Capacidade de identificar e corrigir breaking changes (ex: `cookies()` assíncronos no Next.js 16, conflitos de rota, erros de cache de schema).
+*   **DevOps Básico:** Configuração de deploy (Vercel/Render) e scripts de automação.
+*   **Geração de Assets com IA:** Criação de mockups de UI de alta fidelidade e ícones para prototipagem rápida.
+
+---
+
+## 2. Visão Geral do Projeto
+
+**Nome:** Sistema de Controle de Visitantes (SaaS)
+**Objetivo:** Plataforma para gestão de portarias de múltiplos condomínios/empresas, com foco em operação ininterrupta (offline-first).
+
+**Stack Tecnológica:**
+*   **Frontend Web:** Next.js 16 (App Router), TypeScript, Shadcn UI, Taiwind CSS.
+*   **Mobile App:** Flutter (Android), Clean Architecture, Drift (SQLite), Riverpod.
+*   **Backend/Banco:** Supabase (PostgreSQL), Auth, Storage.
+*   **Infraestrutura:** Vercel (Web).
+
+---
+
+## 3. Decisões Arquiteturais Críticas
+
+### A. Banco de Dados & Multi-Tenancy
+*   **Tenant ID:** `condominio_id` presente em todas as tabelas principais (`empresas`, `visitantes`, `registros`, `dispositivos`).
+*   **Segurança (RLS):** Policies garantem isolamento de dados por condomínio.
+*   **Imutabilidade:** Tabela `registros` armazena snapshots (`visitante_nome_snapshot`, etc.) para garantir integridade histórica mesmo se o cadastro original mudar.
+
+### B. Mobile Offline-First
+*   **Source of Truth (Mobile):** O banco local (Drift) é a verdade absoluta para a operação diária.
+*   **Sincronização:** Manual e bidirecional. O app envia batches de registros para o servidor e baixa atualizações de cadastro.
+*   **Conflitos:** UUIDs gerados no cliente (`uuid_generate_v4()`) para evitar colisão de IDs.
+
+---
+
+## 4. Estado Atual e Desafios Superados
+
+### Backend (Supabase)
+*   [x] Schema SQL completo (Tabelas: `condominios`, `empresas`, `visitantes`, `registros`, `dispositivos`).
+*   [x] RLS ativado e policies configuradas.
+*   [x] Script de Correção (`fix_database.sql`) criado para resolver problemas de cache/permissão.
+
+### Web (Next.js 16)
+*   [x] Autenticação (Login/Logout) com `actions.ts`.
+*   [x] **Dashboard:** Layout responsivo com Sidebar e Header.
+*   [x] **CRUD Empresas:** Listagem, Criação, Edição e Exclusão lógica.
+*   [x] **Regra de Negócio (DB):** Trigger `on_empresa_status_change` implementada para bloquear visitantes automaticamente quando a empresa é bloqueada.
+*   [x] **UI/UX:** Refinamento visual (Tema Verde/Custom) concluído.
+*   [x] **Relatórios:** Módulo de relatórios avançados implementado.
+*   [x] **Deploy:** Sistema operando no Vercel.
+*   [x] **Debugging Crítico:**
+    *   **Async Cookies:** Migração de `cookies()` síncrono para `await cookies()` (compatibilidade Next.js 15+).
+    *   **Route Groups:** Correção de rota `(dashboard)` para `dashboard` (URL segment).
+    *   **Import Paths:** Ajuste de caminhos absolutos (`@/app/...`).
+
+### Mobile (Flutter)
+*   [x] **Setup Inicial:** Configuração de Clean Architecture.
+*   [x] **Banco Local:** Implementação do Drift (SQLite).
+*   [x] **Sincronização:** Mecanismo de sincronização funcional.
+*   [x] **Status:** Aplicativo operando sem erros.
+
+---
+
+## 5. Próximos Passos (Roadmap Imediato)
+
+*   [ ] **Integração com Hardware:** (A definir) Possível integração com leitores biométricos ou portões.
+
+## 6. Melhorias Futuras (Backlog)
+
+*   [ ] **Notificações Push:** Implementação de alertas em tempo real (FCM + Supabase Edge Functions).
+
+---
+
+**Nota:** Sempre consulte este prompt ao reiniciar o trabalho para garantir alinhamento total com a arquitetura definida.
