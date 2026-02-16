@@ -28,7 +28,7 @@ interface Company {
     status: 'ativa' | 'bloqueada' | 'inativa'
 }
 
-export function CompanyList({ data }: { data: Company[] }) {
+export function CompanyList({ data, isAdmin = false }: { data: Company[], isAdmin?: boolean }) {
     const [editingCompany, setEditingCompany] = useState<Company | null>(null)
     const [isDialogOpen, setIsDialogOpen] = useState(false)
 
@@ -46,7 +46,7 @@ export function CompanyList({ data }: { data: Company[] }) {
                             <TableHead className="w-[300px] text-xs font-bold uppercase tracking-wider text-slate-500 pl-8 py-4">Nome</TableHead>
                             <TableHead className="text-xs font-bold uppercase tracking-wider text-slate-500">CNPJ</TableHead>
                             <TableHead className="text-xs font-bold uppercase tracking-wider text-slate-500">Status</TableHead>
-                            <TableHead className="w-[100px] text-end pr-8">Ações</TableHead>
+                            {isAdmin && <TableHead className="w-[100px] text-end pr-8">Ações</TableHead>}
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -73,32 +73,34 @@ export function CompanyList({ data }: { data: Company[] }) {
                                         }
                                     >
                                         <div className={`mr-1.5 h-1.5 w-1.5 rounded-full ${company.status === 'ativa' ? 'bg-emerald-500' :
-                                                company.status === 'bloqueada' ? 'bg-red-500' :
-                                                    'bg-slate-400'
+                                            company.status === 'bloqueada' ? 'bg-red-500' :
+                                                'bg-slate-400'
                                             }`} />
                                         {company.status.charAt(0).toUpperCase() + company.status.slice(1)}
                                     </Badge>
                                 </TableCell>
-                                <TableCell className="text-end pr-6">
-                                    <DropdownMenu>
-                                        <DropdownMenuTrigger asChild>
-                                            <Button variant="ghost" className="h-8 w-8 p-0 text-slate-400 hover:text-primary hover:bg-primary/5">
-                                                <span className="sr-only">Abrir menu</span>
-                                                <MoreHorizontal className="h-4 w-4" />
-                                            </Button>
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent align="end" className="rounded-xl shadow-xl border-slate-100 p-2">
-                                            <DropdownMenuLabel className="text-xs text-slate-400 uppercase tracking-widest px-2">Ações</DropdownMenuLabel>
-                                            <DropdownMenuItem
-                                                onClick={() => handleEdit(company)}
-                                                className="rounded-lg cursor-pointer focus:bg-primary/5 focus:text-primary font-medium"
-                                            >
-                                                <Edit className="mr-2 h-4 w-4" />
-                                                Editar Empresa
-                                            </DropdownMenuItem>
-                                        </DropdownMenuContent>
-                                    </DropdownMenu>
-                                </TableCell>
+                                {isAdmin && (
+                                    <TableCell className="text-end pr-6">
+                                        <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
+                                                <Button variant="ghost" className="h-8 w-8 p-0 text-slate-400 hover:text-primary hover:bg-primary/5">
+                                                    <span className="sr-only">Abrir menu</span>
+                                                    <MoreHorizontal className="h-4 w-4" />
+                                                </Button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent align="end" className="rounded-xl shadow-xl border-slate-100 p-2">
+                                                <DropdownMenuLabel className="text-xs text-slate-400 uppercase tracking-widest px-2">Ações</DropdownMenuLabel>
+                                                <DropdownMenuItem
+                                                    onClick={() => handleEdit(company)}
+                                                    className="rounded-lg cursor-pointer focus:bg-primary/5 focus:text-primary font-medium"
+                                                >
+                                                    <Edit className="mr-2 h-4 w-4" />
+                                                    Editar Empresa
+                                                </DropdownMenuItem>
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
+                                    </TableCell>
+                                )}
                             </TableRow>
                         ))}
                     </TableBody>

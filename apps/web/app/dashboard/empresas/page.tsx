@@ -23,6 +23,16 @@ export default async function EmpresasPage(props: {
         query = query.eq('status', 'bloqueada')
     }
 
+    // Pegar perfil do usuário para verificar role
+    const { data: { user } } = await supabase.auth.getUser()
+    const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user?.id)
+        .single()
+
+    const isAdmin = profile?.role === 'admin'
+
     // Fetch das empresas (Server Component)
     const { data: empresas, error } = await query
 
@@ -41,10 +51,10 @@ export default async function EmpresasPage(props: {
                         </p>
                     )}
                 </div>
-                <CompanyDialog />
+                {isAdmin && <CompanyDialog />}
             </div>
 
-            <CompanyList data={empresas || []} />
+            <CompanyList data={empresas || []} isAdmin={isAdmin} />
         </div>
     )
 }
