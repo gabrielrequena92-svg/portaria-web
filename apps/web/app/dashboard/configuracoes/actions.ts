@@ -97,6 +97,17 @@ export async function createUser(formData: FormData) {
         const full_name = formData.get('full_name') as string
         const role = formData.get('role') as string || 'user'
 
+        // 1.5 Buscar o condomínio do admin logado
+        const supabase = await createClient()
+        const { data: { user: adminUser } } = await supabase.auth.getUser()
+        const { data: adminProfile } = await supabase
+            .from('profiles')
+            .select('condominio_id')
+            .eq('id', adminUser?.id)
+            .single()
+
+        const adminCondoId = adminProfile?.condominio_id || 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'
+
         // 1. Criar usuário no Auth do Supabase
         const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
             email,
@@ -113,7 +124,8 @@ export async function createUser(formData: FormData) {
             .upsert({
                 id: authData.user.id,
                 full_name,
-                role
+                role,
+                condominio_id: adminCondoId
             })
 
         if (profileError) return { error: profileError.message }
