@@ -43,9 +43,11 @@ export const generateVisitorBadge = async (data: VisitorBadgeData) => {
 
     // Header Pattern
     doc.setFillColor(255, 255, 255)
+    // @ts-ignore - GState constructor type missing in jspdf types
     doc.setGState(new doc.GState({ opacity: 0.1 }))
     doc.circle(frontX + badgeWidth - 5, frontY + 5, 10, 'F')
     doc.circle(frontX + 5, frontY + 20, 15, 'F')
+    // @ts-ignore
     doc.setGState(new doc.GState({ opacity: 1.0 }))
 
     // "VISITANTE" Label

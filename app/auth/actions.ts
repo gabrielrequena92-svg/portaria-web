@@ -10,7 +10,8 @@ const loginSchema = z.object({
     password: z.string().min(6),
 })
 
-export async function login(formData: FormData) {
+// prevState is required for useActionState, even if unused
+export async function login(prevState: any, formData: FormData) {
     const supabase = await createClient()
 
     const email = formData.get('email') as string

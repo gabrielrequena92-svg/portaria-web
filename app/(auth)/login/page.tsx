@@ -1,9 +1,20 @@
+'use client'
+
+import { useActionState } from 'react'
 import { login } from '@/app/auth/actions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Loader2 } from 'lucide-react'
+
+const initialState = {
+    error: '',
+}
 
 export default function LoginPage() {
+    // @ts-ignore - useActionState types in React 19/Next 15+ can be tricky with server actions
+    const [state, formAction, isPending] = useActionState(login, initialState)
+
     return (
         <div className="flex min-h-screen items-center justify-center bg-gray-100 dark:bg-gray-900">
             <div className="w-full max-w-md space-y-8 rounded-lg bg-white p-8 shadow-lg dark:bg-gray-800">
@@ -16,7 +27,7 @@ export default function LoginPage() {
                     </p>
                 </div>
 
-                <form action={login} className="mt-8 space-y-6">
+                <form action={formAction} className="mt-8 space-y-6">
                     <div className="space-y-4">
                         <div>
                             <Label htmlFor="email">Email</Label>
@@ -43,7 +54,14 @@ export default function LoginPage() {
                         </div>
                     </div>
 
-                    <Button type="submit" className="w-full">
+                    {state?.error && (
+                        <div className="text-sm text-red-500 font-medium text-center bg-red-50 p-2 rounded">
+                            {state.error}
+                        </div>
+                    )}
+
+                    <Button type="submit" className="w-full" disabled={isPending}>
+                        {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                         Entrar
                     </Button>
                 </form>
@@ -51,3 +69,4 @@ export default function LoginPage() {
         </div>
     )
 }
+
