@@ -55,6 +55,9 @@ export default async function DashboardLayout({
                             Portaria<span className="text-white/40">SaaS</span>
                         </h1>
                         <p className="text-[10px] uppercase tracking-widest text-white/30 font-bold mt-1">Security System</p>
+                        <div className="mt-2 inline-block px-2 py-0.5 rounded bg-white/10 text-[9px] font-black uppercase tracking-tighter text-white/50 border border-white/5">
+                            Status: {profile?.role || 'Visitante/Erro'}
+                        </div>
                     </div>
                 </div>
 
