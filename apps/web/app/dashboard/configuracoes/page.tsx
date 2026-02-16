@@ -31,11 +31,17 @@ export default async function ConfiguracoesPage() {
         .select('*')
         .order('nome')
 
+    // Buscar perfis para gestão de usuários
+    const { data: profiles } = await supabase
+        .from('profiles')
+        .select('*')
+        .order('full_name')
+
     return (
         <div className="space-y-6">
             <div>
                 <h2 className="text-3xl font-bold tracking-tight text-slate-900">Configurações</h2>
-                <p className="text-slate-500">Gerencie os parâmetros do sistema e usuários.</p>
+                <p className="text-slate-500">Gerencie os parâmetros do sistema e equipe.</p>
             </div>
 
             <Tabs defaultValue="condominio" className="space-y-6">
@@ -56,48 +62,24 @@ export default async function ConfiguracoesPage() {
 
                 <TabsContent value="condominio">
                     <Card className="border-none shadow-sm rounded-3xl">
-                        <CardHeader>
-                            <CardTitle>Dados do Condomínio</CardTitle>
-                            <CardDescription>Informações básicas do estabelecimento.</CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            <div className="grid gap-2">
-                                <p className="text-sm font-bold text-slate-500 uppercase tracking-wider">Nome</p>
-                                <p className="text-lg font-medium">{condominio?.nome || 'Não configurado'}</p>
-                            </div>
-                            <div className="grid gap-2">
-                                <p className="text-sm font-bold text-slate-500 uppercase tracking-wider">Endereço</p>
-                                <p className="text-slate-600">{condominio?.endereco || 'Não configurado'}</p>
-                            </div>
-                            <p className="text-xs text-slate-400 italic mt-8">* Edição de dados do condomínio será implementada na próxima fase.</p>
+                        <CardContent className="pt-6">
+                            <CondominioEditor condominio={condominio} />
                         </CardContent>
                     </Card>
                 </TabsContent>
 
                 <TabsContent value="usuarios">
-                    <Card className="border-none shadow-sm rounded-3xl text-center py-20">
-                        <Users className="h-12 w-12 text-slate-200 mx-auto mb-4" />
-                        <h3 className="text-lg font-bold text-slate-900">Gestão de Usuários</h3>
-                        <p className="text-slate-500 max-w-xs mx-auto mb-6">Cadastre novos porteiros e administradores para o sistema.</p>
-                        <p className="text-xs text-slate-400">Em desenvolvimento.</p>
+                    <Card className="border-none shadow-sm rounded-3xl">
+                        <CardContent className="pt-6">
+                            <UserManager profiles={profiles || []} currentUserId={user?.id || ''} />
+                        </CardContent>
                     </Card>
                 </TabsContent>
 
                 <TabsContent value="categorias">
                     <Card className="border-none shadow-sm rounded-3xl">
-                        <CardHeader>
-                            <CardTitle>Tipos de Visitantes</CardTitle>
-                            <CardDescription>Gerencie as opções disponíveis no cadastro.</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="grid gap-2">
-                                {tipos?.map(tipo => (
-                                    <div key={tipo.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                                        <span className="font-bold text-slate-700">{tipo.nome}</span>
-                                        <Badge variant="outline" className="bg-white">Padrão</Badge>
-                                    </div>
-                                ))}
-                            </div>
+                        <CardContent className="pt-6">
+                            <CategoriaManager tipos={tipos || []} />
                         </CardContent>
                     </Card>
                 </TabsContent>
@@ -105,6 +87,10 @@ export default async function ConfiguracoesPage() {
         </div>
     )
 }
+
+import { CondominioEditor } from './CondominioEditor'
+import { UserManager } from './UserManager'
+import { CategoriaManager } from './CategoriaManager'
 
 function Badge({ children, className, variant }: any) {
     return <span className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase ${className}`}>{children}</span>
