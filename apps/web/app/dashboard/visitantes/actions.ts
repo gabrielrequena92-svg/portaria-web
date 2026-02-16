@@ -17,12 +17,28 @@ const visitorSchema = z.object({
 export async function createOrUpdateVisitor(prevState: any, formData: FormData) {
     const supabase = await createClient()
 
+    // 1. Pegar o condomínio do usuário logado
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { message: 'Usuário não autenticado.' }
+
+    const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('condominio_id')
+        .eq('id', user.id)
+        .single()
+
+    if (profileError || !profile?.condominio_id) {
+        return { message: 'Erro ao identificar o condomínio do usuário.' }
+    }
+
+    const condomioId = profile.condominio_id
+
     const rawData = {
         id: formData.get('id') as string,
         nome: formData.get('nome') as string,
         cpf: formData.get('cpf') as string,
         empresa_id: formData.get('empresa_id') as string === 'none' ? null : formData.get('empresa_id') as string,
-        status: formData.get('status') as "ativo" | "bloqueado" | "inativo",
+        status: formData.get('status') as "ativo" | "bloqueada" | "inativa",
         tipo_visitante_id: formData.get('tipo_visitante_id') as string,
         placa_veiculo: formData.get('placa_veiculo') as string || null,
     }
@@ -39,9 +55,6 @@ export async function createOrUpdateVisitor(prevState: any, formData: FormData) 
     }
 
     const { id, ...data } = validatedFields.data
-
-    // Condomínio ID fixo para desenvolvimento/MVP (SaaS mock)
-    const condomioId = 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'
 
     let photoUrl = null
 
@@ -103,7 +116,7 @@ export async function createOrUpdateVisitor(prevState: any, formData: FormData) 
     revalidatePath('/dashboard/visitantes')
 
     // Return the ID for QR Code generation (if new)
-    const finalId = id || (error === null ? (await supabase.from('visitantes').select('id').eq('cpf', data.cpf).single()).data?.id : null)
+    const finalId = id || (error === null ? (await supabase.from('visitantes').select('id').eq('cpf', data.cpf).eq('condominio_id', condomioId).single()).data?.id : null)
 
     return {
         message: 'Sucesso!',

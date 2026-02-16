@@ -14,6 +14,26 @@ const companySchema = z.object({
 export async function createOrUpdateCompany(prevState: any, formData: FormData) {
     const supabase = await createClient()
 
+    // 1. Verificar permissão e pegar condominio_id do perfil
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { message: 'Usuário não autenticado.' }
+
+    const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('role, condominio_id')
+        .eq('id', user.id)
+        .single()
+
+    if (profileError || !profile) {
+        return { message: 'Erro ao buscar perfil do usuário.' }
+    }
+
+    if (profile.role !== 'admin') {
+        return { message: 'Apenas administradores podem gerenciar empresas.' }
+    }
+
+    const condomioId = profile.condominio_id
+
     const rawData = {
         id: formData.get('id') as string,
         nome: formData.get('nome') as string,
@@ -32,11 +52,6 @@ export async function createOrUpdateCompany(prevState: any, formData: FormData) 
 
     const { id, ...data } = validatedFields.data
 
-    // Get Condominio ID (Assumindo single tenant por enquanto ou pegando do user metadata)
-    // Como simplificação para o MVP e testes manuais, vamos pegar o primeiro condomínio que o usuário tem acesso ou 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11' (do seed)
-    // Em produção, isso viria do contexto do usuário logado.
-    const condominioId = 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'
-
     let error
 
     if (id) {
@@ -45,13 +60,13 @@ export async function createOrUpdateCompany(prevState: any, formData: FormData) 
             .from('empresas')
             .update({ ...data })
             .eq('id', id)
-            .eq('condominio_id', condominioId)
+            .eq('condominio_id', condomioId)
         error = result.error
     } else {
         // Create
         const result = await supabase
             .from('empresas')
-            .insert({ ...data, condominio_id: condominioId })
+            .insert({ ...data, condominio_id: condomioId })
         error = result.error
     }
 

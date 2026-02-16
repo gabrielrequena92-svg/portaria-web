@@ -175,7 +175,7 @@ export function UserManager({ profiles, currentUserId }: { profiles: any[], curr
                                     <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent className="rounded-2xl border-none shadow-2xl">
-                                    <SelectItem value="user" className="rounded-xl">Porteiro</SelectItem>
+                                    <SelectItem value="user" className="rounded-xl">User (Porteiro)</SelectItem>
                                     <SelectItem value="admin" className="rounded-xl font-bold">Administrador</SelectItem>
                                 </SelectContent>
                             </Select>
