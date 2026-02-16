@@ -2,9 +2,9 @@
 
 import { useState } from 'react'
 
-import { User, Shield, ShieldAlert, Mail, UserPlus, Link, Copy, Check } from 'lucide-react'
+import { User, Shield, ShieldAlert, Mail, UserPlus, Lock, Check, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { updateUserRole } from './actions'
+import { updateUserRole, createUser } from './actions'
 import { toast } from 'sonner'
 import {
     Select,
@@ -20,18 +20,25 @@ import {
     DialogHeader,
     DialogTitle,
     DialogTrigger,
+    DialogFooter,
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 
 export function UserManager({ profiles, currentUserId }: { profiles: any[], currentUserId: string }) {
     const [isLoading, setIsLoading] = useState<string | null>(null)
-    const [copied, setCopied] = useState(false)
+    const [isCreateOpen, setIsCreateOpen] = useState(false)
+    const [isCreating, setIsCreating] = useState(false)
 
     async function handleRoleChange(userId: string, newRole: 'admin' | 'user') {
         setIsLoading(userId)
         try {
-            await updateUserRole(userId, newRole)
-            toast.success('Permissão atualizada!')
+            const result = await updateUserRole(userId, newRole)
+            if (result?.error) {
+                toast.error(`Falha: ${result.error}`)
+            } else {
+                toast.success('Permissão atualizada!')
+            }
         } catch (error) {
             toast.error('Erro ao atualizar permissão.')
         } finally {
@@ -39,54 +46,102 @@ export function UserManager({ profiles, currentUserId }: { profiles: any[], curr
         }
     }
 
-    const signUpUrl = typeof window !== 'undefined' ? `${window.location.origin}/login` : ''
-
-    const copyToClipboard = () => {
-        navigator.clipboard.writeText(signUpUrl)
-        setCopied(true)
-        toast.success('Link copiado!')
-        setTimeout(() => setCopied(false), 2000)
+    async function handleCreateUser(formData: FormData) {
+        setIsCreating(true)
+        try {
+            const result = await createUser(formData)
+            if (result?.error) {
+                toast.error(`Erro: ${result.error}`)
+            } else {
+                toast.success('Usuário criado com sucesso!')
+                setIsCreateOpen(false)
+            }
+        } catch (error) {
+            toast.error('Erro inesperado ao criar usuário.')
+        } finally {
+            setIsCreating(false)
+        }
     }
 
     return (
         <div className="space-y-4">
-            <div className="flex justify-between items-center mb-6">
+            <div className="flex flex-wrap gap-4 justify-between items-center mb-6">
                 <div>
                     <h3 className="text-lg font-bold text-slate-900">Gestão de Equipe</h3>
                     <p className="text-sm text-slate-500">Controle quem pode acessar o painel e quais são suas permissões.</p>
                 </div>
 
-                <Dialog>
+                <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
                     <DialogTrigger asChild>
-                        <Button className="bg-primary hover:bg-primary/90 rounded-xl gap-2">
+                        <Button className="bg-primary hover:bg-primary/90 rounded-xl gap-2 h-11 px-6 shadow-md shadow-primary/20">
                             <UserPlus className="h-4 w-4" />
-                            Convidar Usuário
+                            Novo Usuário
                         </Button>
                     </DialogTrigger>
                     <DialogContent className="rounded-3xl border-none shadow-2xl max-w-md">
-                        <DialogHeader>
-                            <DialogTitle>Convidar Membro</DialogTitle>
-                            <DialogDescription>
-                                Peça para a pessoa acessar o link abaixo e criar uma conta.
-                                Depois que ela logar, ela aparecerá na sua lista para que você mude a permissão dela.
-                            </DialogDescription>
-                        </DialogHeader>
-                        <div className="flex items-center gap-2 mt-4 p-3 bg-slate-50 rounded-2xl border border-slate-100">
-                            <Link className="h-4 w-4 text-slate-400 shrink-0" />
-                            <Input
-                                readOnly
-                                value={signUpUrl}
-                                className="bg-transparent border-none focus-visible:ring-0 shadow-none text-xs font-mono"
-                            />
-                            <Button
-                                size="icon"
-                                variant="ghost"
-                                className="h-8 w-8 rounded-lg"
-                                onClick={copyToClipboard}
-                            >
-                                {copied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
-                            </Button>
-                        </div>
+                        <form action={handleCreateUser} className="space-y-4">
+                            <DialogHeader>
+                                <DialogTitle className="text-2xl font-black text-slate-900">Cadastrar Usuário</DialogTitle>
+                                <DialogDescription className="text-slate-500">
+                                    Crie um novo acesso direto com email e senha.
+                                </DialogDescription>
+                            </DialogHeader>
+
+                            <div className="space-y-4 py-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="full_name" className="text-xs uppercase font-black text-slate-400">Nome Completo</Label>
+                                    <div className="relative">
+                                        <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                                        <Input id="full_name" name="full_name" placeholder="Ex: João da Silva" className="pl-10 rounded-xl h-12 bg-slate-50 border-slate-100" required />
+                                    </div>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label htmlFor="email" className="text-xs uppercase font-black text-slate-400">Email (Login)</Label>
+                                    <div className="relative">
+                                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                                        <Input id="email" name="email" type="email" placeholder="email@exemplo.com" className="pl-10 rounded-xl h-12 bg-slate-50 border-slate-100" required />
+                                    </div>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label htmlFor="password" className="text-xs uppercase font-black text-slate-400">Senha</Label>
+                                    <div className="relative">
+                                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                                        <Input id="password" name="password" type="password" placeholder="••••••••" className="pl-10 rounded-xl h-12 bg-slate-50 border-slate-100" required minLength={6} />
+                                    </div>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label className="text-xs uppercase font-black text-slate-400">Nível de Acesso</Label>
+                                    <Select name="role" defaultValue="user">
+                                        <SelectTrigger className="rounded-xl h-12 bg-slate-50 border-slate-100 font-bold">
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent className="rounded-2xl border-none shadow-2xl">
+                                            <SelectItem value="user" className="rounded-xl font-medium">Visualizador/Porteiro</SelectItem>
+                                            <SelectItem value="admin" className="rounded-xl font-bold">Administrador</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            </div>
+
+                            <DialogFooter>
+                                <Button type="submit" disabled={isCreating} className="w-full h-12 rounded-xl bg-primary text-white font-bold gap-2">
+                                    {isCreating ? (
+                                        <>
+                                            <Loader2 className="h-4 w-4 animate-spin" />
+                                            Criando...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Check className="h-4 w-4" />
+                                            Confirmar Cadastro
+                                        </>
+                                    )}
+                                </Button>
+                            </DialogFooter>
+                        </form>
                     </DialogContent>
                 </Dialog>
             </div>

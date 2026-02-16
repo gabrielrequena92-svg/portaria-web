@@ -1,71 +1,126 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import { revalidatePath } from 'next/cache'
 
+// Cliente administrativo para ações que exigem bypass de RLS (como criar usuários)
+const supabaseAdmin = createSupabaseClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+)
+
 export async function updateCondominio(formData: FormData) {
-    const supabase = await createClient()
-    const id = formData.get('id') as string
-    const nome = formData.get('nome') as string
-    const endereco = formData.get('endereco') as string
+    try {
+        const supabase = await createClient()
+        const id = formData.get('id') as string
+        const nome = formData.get('nome') as string
+        const endereco = formData.get('endereco') as string
 
-    // Como só deve existir um condomínio, usamos upsert
-    // Se não houver ID (primeira vez), o Supabase cria um novo
-    const payload: any = { nome, endereco }
-    if (id) payload.id = id
+        const payload: any = { nome, endereco }
+        if (id && id !== 'undefined') payload.id = id
 
-    const { error } = await supabase
-        .from('condominios')
-        .upsert(payload)
+        const { error } = await supabase
+            .from('condominios')
+            .upsert(payload)
 
-    if (error) throw error
+        if (error) return { error: error.message }
 
-    revalidatePath('/dashboard/configuracoes')
+        revalidatePath('/dashboard/configuracoes')
+        return { success: true }
+    } catch (e: any) {
+        return { error: e.message || 'Erro inesperado ao salvar condomínio' }
+    }
 }
 
 export async function upsertTipoVisitante(formData: FormData) {
-    const supabase = await createClient()
-    const id = formData.get('id') as string
-    const nome = formData.get('nome') as string
+    try {
+        const supabase = await createClient()
+        const id = formData.get('id') as string
+        const nome = formData.get('nome') as string
 
-    if (id) {
         const { error } = await supabase
             .from('tipos_visitantes')
-            .update({ nome })
-            .eq('id', id)
-        if (error) throw error
-    } else {
-        const { error } = await supabase
-            .from('tipos_visitantes')
-            .insert({ nome })
-        if (error) throw error
+            .upsert({ id: id || undefined, nome })
+
+        if (error) return { error: error.message }
+
+        revalidatePath('/dashboard/configuracoes')
+        return { success: true }
+    } catch (e: any) {
+        return { error: e.message || 'Erro ao salvar categoria' }
     }
-
-    revalidatePath('/dashboard/configuracoes')
 }
 
 export async function deleteTipoVisitante(id: string) {
-    const supabase = await createClient()
+    try {
+        const supabase = await createClient()
+        const { error } = await supabase
+            .from('tipos_visitantes')
+            .delete()
+            .eq('id', id)
 
-    const { error } = await supabase
-        .from('tipos_visitantes')
-        .delete()
-        .eq('id', id)
+        if (error) return { error: error.message }
 
-    if (error) throw error
-
-    revalidatePath('/dashboard/configuracoes')
+        revalidatePath('/dashboard/configuracoes')
+        return { success: true }
+    } catch (e: any) {
+        return { error: e.message }
+    }
 }
 
 export async function updateUserRole(userId: string, role: 'admin' | 'user') {
-    const supabase = await createClient()
+    try {
+        const supabase = await createClient()
+        const { error } = await supabase
+            .from('profiles')
+            .update({ role })
+            .eq('id', userId)
 
-    const { error } = await supabase
-        .from('profiles')
-        .update({ role })
-        .eq('id', userId)
+        if (error) return { error: error.message }
 
-    if (error) throw error
+        revalidatePath('/dashboard/configuracoes')
+        return { success: true }
+    } catch (e: any) {
+        return { error: e.message }
+    }
+}
 
-    revalidatePath('/dashboard/configuracoes')
+export async function createUser(formData: FormData) {
+    try {
+        if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+            return { error: 'SERVICE_ROLE_KEY não configurada no servidor.' }
+        }
+
+        const email = formData.get('email') as string
+        const password = formData.get('password') as string
+        const full_name = formData.get('full_name') as string
+        const role = formData.get('role') as string || 'user'
+
+        // 1. Criar usuário no Auth do Supabase
+        const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
+            email,
+            password,
+            email_confirm: true,
+            user_metadata: { full_name }
+        })
+
+        if (authError) return { error: authError.message }
+
+        // 2. Garantir que o perfil foi criado (ou atualizar se já existir via trigger)
+        const { error: profileError } = await supabaseAdmin
+            .from('profiles')
+            .upsert({
+                id: authData.user.id,
+                full_name,
+                role
+            })
+
+        if (profileError) return { error: profileError.message }
+
+        revalidatePath('/dashboard/configuracoes')
+        return { success: true }
+    } catch (e: any) {
+        return { error: e.message }
+    }
 }

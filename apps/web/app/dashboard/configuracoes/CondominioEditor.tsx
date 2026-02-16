@@ -15,13 +15,16 @@ export function CondominioEditor({ condominio }: { condominio: any }) {
     async function handleSubmit(formData: FormData) {
         setIsLoading(true)
         try {
-            await updateCondominio(formData)
-            setIsEditing(false)
-            toast.success('Dados do condomínio atualizados!')
+            const result = await updateCondominio(formData)
+            if (result?.error) {
+                toast.error(`Falha: ${result.error}. Verifique as permissões (RLS).`)
+            } else {
+                setIsEditing(false)
+                toast.success('Dados do condomínio atualizados!')
+            }
         } catch (error: any) {
             console.error('Erro ao salvar condomínio:', error)
-            const msg = error.message || 'Erro ao atualizar dados.'
-            toast.error(`Falha: ${msg}. Verifique as permissões (RLS).`)
+            toast.error('Erro inesperado ao salvar os dados.')
         } finally {
             setIsLoading(false)
         }

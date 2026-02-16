@@ -27,12 +27,16 @@ export function CategoriaManager({ tipos }: { tipos: any[] }) {
         if (isLoading) return
         setIsLoading(true)
         try {
-            await upsertTipoVisitante(formData)
-            setIsOpen(false)
-            setEditingTipo(null)
-            toast.success('Categoria salva com sucesso!')
+            const result = await upsertTipoVisitante(formData)
+            if (result?.error) {
+                toast.error(`Falha: ${result.error}`)
+            } else {
+                setIsOpen(false)
+                setEditingTipo(null)
+                toast.success('Categoria salva com sucesso!')
+            }
         } catch (error) {
-            toast.error('Erro ao salvar categoria.')
+            toast.error('Erro inesperado ao salvar categoria.')
         } finally {
             setIsLoading(false)
         }
