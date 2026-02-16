@@ -1744,6 +1744,17 @@ class $RegistrosTable extends Registros
         type: DriftSqlType.string,
         requiredDuringInsert: false,
       );
+  static const VerificationMeta _statusSnapshotMeta = const VerificationMeta(
+    'statusSnapshot',
+  );
+  @override
+  late final GeneratedColumn<String> statusSnapshot = GeneratedColumn<String>(
+    'status_snapshot',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _syncStatusMeta = const VerificationMeta(
     'syncStatus',
   );
@@ -1781,6 +1792,7 @@ class $RegistrosTable extends Registros
     visitanteCpfSnapshot,
     visitorPhotoSnapshot,
     empresaNomeSnapshot,
+    statusSnapshot,
     syncStatus,
     createdAt,
   ];
@@ -1904,6 +1916,15 @@ class $RegistrosTable extends Registros
         ),
       );
     }
+    if (data.containsKey('status_snapshot')) {
+      context.handle(
+        _statusSnapshotMeta,
+        statusSnapshot.isAcceptableOrUnknown(
+          data['status_snapshot']!,
+          _statusSnapshotMeta,
+        ),
+      );
+    }
     if (data.containsKey('sync_status')) {
       context.handle(
         _syncStatusMeta,
@@ -1975,6 +1996,10 @@ class $RegistrosTable extends Registros
         DriftSqlType.string,
         data['${effectivePrefix}empresa_nome_snapshot'],
       ),
+      statusSnapshot: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}status_snapshot'],
+      ),
       syncStatus: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}sync_status'],
@@ -2005,6 +2030,7 @@ class Registro extends DataClass implements Insertable<Registro> {
   final String? visitanteCpfSnapshot;
   final String? visitorPhotoSnapshot;
   final String? empresaNomeSnapshot;
+  final String? statusSnapshot;
   final int syncStatus;
   final DateTime createdAt;
   const Registro({
@@ -2020,6 +2046,7 @@ class Registro extends DataClass implements Insertable<Registro> {
     this.visitanteCpfSnapshot,
     this.visitorPhotoSnapshot,
     this.empresaNomeSnapshot,
+    this.statusSnapshot,
     required this.syncStatus,
     required this.createdAt,
   });
@@ -2049,6 +2076,9 @@ class Registro extends DataClass implements Insertable<Registro> {
     }
     if (!nullToAbsent || empresaNomeSnapshot != null) {
       map['empresa_nome_snapshot'] = Variable<String>(empresaNomeSnapshot);
+    }
+    if (!nullToAbsent || statusSnapshot != null) {
+      map['status_snapshot'] = Variable<String>(statusSnapshot);
     }
     map['sync_status'] = Variable<int>(syncStatus);
     map['created_at'] = Variable<DateTime>(createdAt);
@@ -2081,6 +2111,9 @@ class Registro extends DataClass implements Insertable<Registro> {
       empresaNomeSnapshot: empresaNomeSnapshot == null && nullToAbsent
           ? const Value.absent()
           : Value(empresaNomeSnapshot),
+      statusSnapshot: statusSnapshot == null && nullToAbsent
+          ? const Value.absent()
+          : Value(statusSnapshot),
       syncStatus: Value(syncStatus),
       createdAt: Value(createdAt),
     );
@@ -2112,6 +2145,7 @@ class Registro extends DataClass implements Insertable<Registro> {
       empresaNomeSnapshot: serializer.fromJson<String?>(
         json['empresaNomeSnapshot'],
       ),
+      statusSnapshot: serializer.fromJson<String?>(json['statusSnapshot']),
       syncStatus: serializer.fromJson<int>(json['syncStatus']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
     );
@@ -2132,6 +2166,7 @@ class Registro extends DataClass implements Insertable<Registro> {
       'visitanteCpfSnapshot': serializer.toJson<String?>(visitanteCpfSnapshot),
       'visitorPhotoSnapshot': serializer.toJson<String?>(visitorPhotoSnapshot),
       'empresaNomeSnapshot': serializer.toJson<String?>(empresaNomeSnapshot),
+      'statusSnapshot': serializer.toJson<String?>(statusSnapshot),
       'syncStatus': serializer.toJson<int>(syncStatus),
       'createdAt': serializer.toJson<DateTime>(createdAt),
     };
@@ -2150,6 +2185,7 @@ class Registro extends DataClass implements Insertable<Registro> {
     Value<String?> visitanteCpfSnapshot = const Value.absent(),
     Value<String?> visitorPhotoSnapshot = const Value.absent(),
     Value<String?> empresaNomeSnapshot = const Value.absent(),
+    Value<String?> statusSnapshot = const Value.absent(),
     int? syncStatus,
     DateTime? createdAt,
   }) => Registro(
@@ -2173,6 +2209,9 @@ class Registro extends DataClass implements Insertable<Registro> {
     empresaNomeSnapshot: empresaNomeSnapshot.present
         ? empresaNomeSnapshot.value
         : this.empresaNomeSnapshot,
+    statusSnapshot: statusSnapshot.present
+        ? statusSnapshot.value
+        : this.statusSnapshot,
     syncStatus: syncStatus ?? this.syncStatus,
     createdAt: createdAt ?? this.createdAt,
   );
@@ -2208,6 +2247,9 @@ class Registro extends DataClass implements Insertable<Registro> {
       empresaNomeSnapshot: data.empresaNomeSnapshot.present
           ? data.empresaNomeSnapshot.value
           : this.empresaNomeSnapshot,
+      statusSnapshot: data.statusSnapshot.present
+          ? data.statusSnapshot.value
+          : this.statusSnapshot,
       syncStatus: data.syncStatus.present
           ? data.syncStatus.value
           : this.syncStatus,
@@ -2230,6 +2272,7 @@ class Registro extends DataClass implements Insertable<Registro> {
           ..write('visitanteCpfSnapshot: $visitanteCpfSnapshot, ')
           ..write('visitorPhotoSnapshot: $visitorPhotoSnapshot, ')
           ..write('empresaNomeSnapshot: $empresaNomeSnapshot, ')
+          ..write('statusSnapshot: $statusSnapshot, ')
           ..write('syncStatus: $syncStatus, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
@@ -2250,6 +2293,7 @@ class Registro extends DataClass implements Insertable<Registro> {
     visitanteCpfSnapshot,
     visitorPhotoSnapshot,
     empresaNomeSnapshot,
+    statusSnapshot,
     syncStatus,
     createdAt,
   );
@@ -2269,6 +2313,7 @@ class Registro extends DataClass implements Insertable<Registro> {
           other.visitanteCpfSnapshot == this.visitanteCpfSnapshot &&
           other.visitorPhotoSnapshot == this.visitorPhotoSnapshot &&
           other.empresaNomeSnapshot == this.empresaNomeSnapshot &&
+          other.statusSnapshot == this.statusSnapshot &&
           other.syncStatus == this.syncStatus &&
           other.createdAt == this.createdAt);
 }
@@ -2286,6 +2331,7 @@ class RegistrosCompanion extends UpdateCompanion<Registro> {
   final Value<String?> visitanteCpfSnapshot;
   final Value<String?> visitorPhotoSnapshot;
   final Value<String?> empresaNomeSnapshot;
+  final Value<String?> statusSnapshot;
   final Value<int> syncStatus;
   final Value<DateTime> createdAt;
   final Value<int> rowid;
@@ -2302,6 +2348,7 @@ class RegistrosCompanion extends UpdateCompanion<Registro> {
     this.visitanteCpfSnapshot = const Value.absent(),
     this.visitorPhotoSnapshot = const Value.absent(),
     this.empresaNomeSnapshot = const Value.absent(),
+    this.statusSnapshot = const Value.absent(),
     this.syncStatus = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -2319,6 +2366,7 @@ class RegistrosCompanion extends UpdateCompanion<Registro> {
     this.visitanteCpfSnapshot = const Value.absent(),
     this.visitorPhotoSnapshot = const Value.absent(),
     this.empresaNomeSnapshot = const Value.absent(),
+    this.statusSnapshot = const Value.absent(),
     this.syncStatus = const Value.absent(),
     required DateTime createdAt,
     this.rowid = const Value.absent(),
@@ -2342,6 +2390,7 @@ class RegistrosCompanion extends UpdateCompanion<Registro> {
     Expression<String>? visitanteCpfSnapshot,
     Expression<String>? visitorPhotoSnapshot,
     Expression<String>? empresaNomeSnapshot,
+    Expression<String>? statusSnapshot,
     Expression<int>? syncStatus,
     Expression<DateTime>? createdAt,
     Expression<int>? rowid,
@@ -2363,6 +2412,7 @@ class RegistrosCompanion extends UpdateCompanion<Registro> {
         'visitor_photo_snapshot': visitorPhotoSnapshot,
       if (empresaNomeSnapshot != null)
         'empresa_nome_snapshot': empresaNomeSnapshot,
+      if (statusSnapshot != null) 'status_snapshot': statusSnapshot,
       if (syncStatus != null) 'sync_status': syncStatus,
       if (createdAt != null) 'created_at': createdAt,
       if (rowid != null) 'rowid': rowid,
@@ -2382,6 +2432,7 @@ class RegistrosCompanion extends UpdateCompanion<Registro> {
     Value<String?>? visitanteCpfSnapshot,
     Value<String?>? visitorPhotoSnapshot,
     Value<String?>? empresaNomeSnapshot,
+    Value<String?>? statusSnapshot,
     Value<int>? syncStatus,
     Value<DateTime>? createdAt,
     Value<int>? rowid,
@@ -2400,6 +2451,7 @@ class RegistrosCompanion extends UpdateCompanion<Registro> {
       visitanteCpfSnapshot: visitanteCpfSnapshot ?? this.visitanteCpfSnapshot,
       visitorPhotoSnapshot: visitorPhotoSnapshot ?? this.visitorPhotoSnapshot,
       empresaNomeSnapshot: empresaNomeSnapshot ?? this.empresaNomeSnapshot,
+      statusSnapshot: statusSnapshot ?? this.statusSnapshot,
       syncStatus: syncStatus ?? this.syncStatus,
       createdAt: createdAt ?? this.createdAt,
       rowid: rowid ?? this.rowid,
@@ -2453,6 +2505,9 @@ class RegistrosCompanion extends UpdateCompanion<Registro> {
         empresaNomeSnapshot.value,
       );
     }
+    if (statusSnapshot.present) {
+      map['status_snapshot'] = Variable<String>(statusSnapshot.value);
+    }
     if (syncStatus.present) {
       map['sync_status'] = Variable<int>(syncStatus.value);
     }
@@ -2480,6 +2535,7 @@ class RegistrosCompanion extends UpdateCompanion<Registro> {
           ..write('visitanteCpfSnapshot: $visitanteCpfSnapshot, ')
           ..write('visitorPhotoSnapshot: $visitorPhotoSnapshot, ')
           ..write('empresaNomeSnapshot: $empresaNomeSnapshot, ')
+          ..write('statusSnapshot: $statusSnapshot, ')
           ..write('syncStatus: $syncStatus, ')
           ..write('createdAt: $createdAt, ')
           ..write('rowid: $rowid')
@@ -3950,6 +4006,7 @@ typedef $$RegistrosTableCreateCompanionBuilder =
       Value<String?> visitanteCpfSnapshot,
       Value<String?> visitorPhotoSnapshot,
       Value<String?> empresaNomeSnapshot,
+      Value<String?> statusSnapshot,
       Value<int> syncStatus,
       required DateTime createdAt,
       Value<int> rowid,
@@ -3968,6 +4025,7 @@ typedef $$RegistrosTableUpdateCompanionBuilder =
       Value<String?> visitanteCpfSnapshot,
       Value<String?> visitorPhotoSnapshot,
       Value<String?> empresaNomeSnapshot,
+      Value<String?> statusSnapshot,
       Value<int> syncStatus,
       Value<DateTime> createdAt,
       Value<int> rowid,
@@ -4072,6 +4130,11 @@ class $$RegistrosTableFilterComposer
 
   ColumnFilters<String> get empresaNomeSnapshot => $composableBuilder(
     column: $table.empresaNomeSnapshot,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get statusSnapshot => $composableBuilder(
+    column: $table.statusSnapshot,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -4191,6 +4254,11 @@ class $$RegistrosTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get statusSnapshot => $composableBuilder(
+    column: $table.statusSnapshot,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<int> get syncStatus => $composableBuilder(
     column: $table.syncStatus,
     builder: (column) => ColumnOrderings(column),
@@ -4303,6 +4371,11 @@ class $$RegistrosTableAnnotationComposer
     builder: (column) => column,
   );
 
+  GeneratedColumn<String> get statusSnapshot => $composableBuilder(
+    column: $table.statusSnapshot,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<int> get syncStatus => $composableBuilder(
     column: $table.syncStatus,
     builder: (column) => column,
@@ -4398,6 +4471,7 @@ class $$RegistrosTableTableManager
                 Value<String?> visitanteCpfSnapshot = const Value.absent(),
                 Value<String?> visitorPhotoSnapshot = const Value.absent(),
                 Value<String?> empresaNomeSnapshot = const Value.absent(),
+                Value<String?> statusSnapshot = const Value.absent(),
                 Value<int> syncStatus = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -4414,6 +4488,7 @@ class $$RegistrosTableTableManager
                 visitanteCpfSnapshot: visitanteCpfSnapshot,
                 visitorPhotoSnapshot: visitorPhotoSnapshot,
                 empresaNomeSnapshot: empresaNomeSnapshot,
+                statusSnapshot: statusSnapshot,
                 syncStatus: syncStatus,
                 createdAt: createdAt,
                 rowid: rowid,
@@ -4432,6 +4507,7 @@ class $$RegistrosTableTableManager
                 Value<String?> visitanteCpfSnapshot = const Value.absent(),
                 Value<String?> visitorPhotoSnapshot = const Value.absent(),
                 Value<String?> empresaNomeSnapshot = const Value.absent(),
+                Value<String?> statusSnapshot = const Value.absent(),
                 Value<int> syncStatus = const Value.absent(),
                 required DateTime createdAt,
                 Value<int> rowid = const Value.absent(),
@@ -4448,6 +4524,7 @@ class $$RegistrosTableTableManager
                 visitanteCpfSnapshot: visitanteCpfSnapshot,
                 visitorPhotoSnapshot: visitorPhotoSnapshot,
                 empresaNomeSnapshot: empresaNomeSnapshot,
+                statusSnapshot: statusSnapshot,
                 syncStatus: syncStatus,
                 createdAt: createdAt,
                 rowid: rowid,

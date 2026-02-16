@@ -33,29 +33,28 @@ class _AccessActionButtonsState extends State<AccessActionButtons> {
         initialPlaca: _placaVeiculo,
         initialFotoPath: _fotoVeiculoPath,
         onSave: (placa, fotoPath) {
-          setState(() {
-            _placaVeiculo = placa;
-            _fotoVeiculoPath = fotoPath;
-          });
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Dados do veículo salvos!'),
-              backgroundColor: Colors.green,
-              duration: Duration(seconds: 2),
-            ),
-          );
+          if (mounted) {
+            setState(() {
+              _placaVeiculo = placa;
+              _fotoVeiculoPath = fotoPath;
+            });
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Dados do veículo salvos!'),
+                backgroundColor: Colors.green,
+                duration: Duration(seconds: 2),
+              ),
+            );
+          }
         },
       ),
     );
   }
 
-  Future<void> _registrarEntrada() async {
+  void _registrarEntrada() {
+    // Just call callback with current vehicle data
+    // Don't try to clear state - let parent handle everything
     widget.onRegisterAccess('entrada', _placaVeiculo, _fotoVeiculoPath);
-    // Clear vehicle data after entry
-    setState(() {
-      _placaVeiculo = null;
-      _fotoVeiculoPath = null;
-    });
   }
 
   Future<void> _registrarSaida() async {
@@ -66,18 +65,18 @@ class _AccessActionButtonsState extends State<AccessActionButtons> {
       // Ask if leaving with same vehicle
       final mesmoVeiculo = await showDialog<bool>(
         context: context,
-        builder: (context) => AlertDialog(
+        builder: (dialogContext) => AlertDialog(
           title: const Text('Veículo na Saída'),
           content: Text(
             'Visitante entrou com o veículo:\n\nPlaca: ${widget.ultimoRegistroHoje!.placaVeiculo}\n\nSaindo com o mesmo veículo?',
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(context, false),
+              onPressed: () => Navigator.pop(dialogContext, false),
               child: const Text('NÃO'),
             ),
             ElevatedButton(
-              onPressed: () => Navigator.pop(context, true),
+              onPressed: () => Navigator.pop(dialogContext, true),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF022C22),
                 foregroundColor: Colors.white,
@@ -99,15 +98,21 @@ class _AccessActionButtonsState extends State<AccessActionButtons> {
         );
       } else {
         // Different vehicle - ask for new plate
-        if (mounted) {
-          showDialog(
-            context: context,
-            builder: (context) => VehicleDialog(
-              onSave: (placa, fotoPath) {
-                widget.onRegisterAccess('saida', placa, fotoPath);
-              },
-            ),
-          );
+        if (!mounted) return;
+        
+        final result = await showDialog<Map<String, String?>>(
+          context: context,
+          builder: (dialogContext) => VehicleDialog(
+            onSave: (placa, fotoPath) {
+              // Close dialog and return data
+              Navigator.pop(dialogContext, {'placa': placa, 'foto': fotoPath});
+            },
+          ),
+        );
+        
+        // Call callback with the data AFTER dialog is closed
+        if (result != null) {
+          widget.onRegisterAccess('saida', result['placa'], result['foto']);
         }
       }
     } else {

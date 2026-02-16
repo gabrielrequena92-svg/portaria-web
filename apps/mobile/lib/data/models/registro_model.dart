@@ -17,6 +17,7 @@ class RegistroModel extends Registro {
     String? visitanteCpfSnapshot,
     String? visitorPhotoSnapshot,
     String? empresaNomeSnapshot,
+    String? statusSnapshot,
     required int syncStatus,
   }) : super(
           id: id,
@@ -31,6 +32,7 @@ class RegistroModel extends Registro {
           visitanteCpfSnapshot: visitanteCpfSnapshot,
           visitorPhotoSnapshot: visitorPhotoSnapshot,
           empresaNomeSnapshot: empresaNomeSnapshot,
+          statusSnapshot: statusSnapshot,
           syncStatus: syncStatus,
         );
 
@@ -50,6 +52,7 @@ class RegistroModel extends Registro {
       'visitante_cpf_snapshot': visitanteCpfSnapshot,
       'visitor_photo_snapshot': visitorPhotoSnapshot,
       'empresa_nome_snapshot': empresaNomeSnapshot,
+      'status_snapshot': statusSnapshot,
     };
   }
 
@@ -68,6 +71,7 @@ class RegistroModel extends Registro {
       visitanteCpfSnapshot: driftObject.visitanteCpfSnapshot,
       visitorPhotoSnapshot: driftObject.visitorPhotoSnapshot,
       empresaNomeSnapshot: driftObject.empresaNomeSnapshot,
+      statusSnapshot: driftObject.statusSnapshot,
       syncStatus: driftObject.syncStatus,
     );
   }
@@ -87,6 +91,7 @@ class RegistroModel extends Registro {
       visitanteCpfSnapshot: Value(visitanteCpfSnapshot),
       visitorPhotoSnapshot: Value(visitorPhotoSnapshot),
       empresaNomeSnapshot: Value(empresaNomeSnapshot),
+      statusSnapshot: Value(statusSnapshot),
       syncStatus: Value(syncStatus),
       createdAt: Value(BrazilTime.now()),
     );
@@ -105,6 +110,7 @@ class RegistroModel extends Registro {
     String? visitanteCpfSnapshot,
     String? visitorPhotoSnapshot,
     String? empresaNomeSnapshot,
+    String? statusSnapshot,
     int? syncStatus,
   }) {
     return RegistroModel(
@@ -120,6 +126,7 @@ class RegistroModel extends Registro {
       visitanteCpfSnapshot: visitanteCpfSnapshot ?? this.visitanteCpfSnapshot,
       visitorPhotoSnapshot: visitorPhotoSnapshot ?? this.visitorPhotoSnapshot,
       empresaNomeSnapshot: empresaNomeSnapshot ?? this.empresaNomeSnapshot,
+      statusSnapshot: statusSnapshot ?? this.statusSnapshot,
       syncStatus: syncStatus ?? this.syncStatus,
     );
   }

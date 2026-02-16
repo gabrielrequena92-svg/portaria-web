@@ -2,13 +2,10 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:cached_network_image/cached_network_image.dart';
-import 'package:image_picker/image_picker.dart';
 import '../controllers/home_viewmodel.dart';
 import '../screens/scanner_screen.dart';
-import '../widgets/access_action_buttons.dart';
+import '../widgets/visitante_card.dart';
 import '../../../../domain/entities/visitante.dart';
-import '../../../../domain/entities/registro.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -122,7 +119,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             itemBuilder: (context, index) {
                               final visitante = state.visitantes[index];
                               final empresaNome = state.empresas[visitante.empresaId]?.nome ?? '-';
-                              return _buildVisitanteProfileCard(context, visitante, empresaNome, viewModel);
+                              return VisitanteCard(
+                                visitante: visitante,
+                                empresaNome: empresaNome,
+                                viewModel: viewModel,
+                              );
                             },
                           ),
           ),
@@ -180,145 +181,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  Widget _buildVisitanteProfileCard(
-    BuildContext context, 
-    Visitante visitante,
-    String empresaNome,
-    HomeViewModel viewModel
-  ) {
-    Color statusColor = Colors.grey;
-    if (visitante.status == 'ativo') statusColor = Colors.green;
-    if (visitante.status == 'bloqueado') statusColor = Colors.red;
-
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // 1. Large Photo
-          Container(
-            width: 220,
-            height: 220,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Colors.grey[200],
-              border: Border.all(color: Colors.white, width: 4),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 10,
-                )
-              ],
-            ),
-            child: ClipOval(
-              child: visitante.fotoUrl != null && visitante.fotoUrl!.isNotEmpty
-                  ? CachedNetworkImage(
-                      imageUrl: visitante.fotoUrl!,
-                      fit: BoxFit.cover,
-                      placeholder: (context, url) => Icon(Icons.person, size: 100, color: Colors.grey[400]),
-                      errorWidget: (context, url, error) => Icon(Icons.person, size: 100, color: Colors.grey[400]),
-                    )
-                  : Icon(Icons.person, size: 100, color: Colors.grey[400]),
-            ),
-          ),
-          const SizedBox(height: 12),
-
-          // 2. Name & CPF
-          Text(
-            visitante.nome,
-            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 2),
-          Text(
-            'CPF: ${visitante.documento ?? "N/A"}',
-            style: TextStyle(fontSize: 18, color: Colors.grey[600]),
-          ),
-          
-          const SizedBox(height: 12),
-
-          // 3. Info Badges (Empresa & Status)
-          Wrap(
-            spacing: 8,
-            runSpacing: 4,
-            alignment: WrapAlignment.center,
-            children: [
-              Chip(
-                avatar: const Icon(Icons.business, size: 16, color: Colors.grey),
-                label: Text(empresaNome, style: const TextStyle(fontWeight: FontWeight.w500)),
-                backgroundColor: Colors.grey[100],
-                padding: EdgeInsets.zero,
-                visualDensity: VisualDensity.compact,
-              ),
-              Chip(
-                avatar: Icon(Icons.circle, size: 12, color: statusColor),
-                label: Text(
-                  visitante.status.toUpperCase(), 
-                  style: TextStyle(color: statusColor, fontWeight: FontWeight.bold)
-                ),
-                backgroundColor: statusColor.withOpacity(0.1),
-                side: BorderSide.none,
-                padding: EdgeInsets.zero,
-                visualDensity: VisualDensity.compact,
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 16),
-
-          // 4. Action Buttons with Vehicle Support
-          FutureBuilder<Registro?>(
-            future: viewModel.getUltimoRegistroHoje(visitante.id),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
-              }
-
-              return AccessActionButtons(
-                visitante: visitante,
-                ultimoRegistroHoje: snapshot.data,
-                onRegisterAccess: (tipo, placa, fotoPath) async {
-                  await viewModel.registerAccess(
-                    visitante,
-                    tipo,
-                    placaVeiculo: placa,
-                    fotoVeiculoUrl: fotoPath,
-                  );
-                  
-                  if (context.mounted) {
-                    Navigator.pop(context);
-                    _searchController.clear();
-                    viewModel.loadVisitantes('');
-                    
-                    final tipoLabel = tipo == 'entrada' ? 'Entrada' : 'Saída';
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('$tipoLabel de ${visitante.nome} registrada!'),
-                        backgroundColor: tipo == 'entrada' ? Colors.green[700] : Colors.red[700],
-                      ),
-                    );
-                  }
-                },
-              );
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
 
   void _showQuickAccessDialog(BuildContext context, Visitante visitante, HomeViewModel viewModel) {
     // 1. Validate Status
@@ -346,25 +208,59 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       }
     }
 
+    final empresaNome = empresa?.nome ?? '-';
+
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      builder: (context) => Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) => Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
         ),
-        padding: const EdgeInsets.all(32),
-        child: _AccessForm(
-          visitante: visitante,
-          viewModel: viewModel,
-          empresa: empresa,
-          isBlocked: isBlocked,
-          statusColor: statusColor,
-          statusIcon: statusIcon,
-          statusTitle: statusTitle,
-          statusMessage: statusMessage,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+               // Header with Status (Kept for visual feedback on scan)
+               Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                decoration: BoxDecoration(
+                  color: statusColor,
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+                ),
+                child: Column(
+                  children: [
+                    Icon(statusIcon, size: 48, color: Colors.white),
+                    const SizedBox(height: 8),
+                    Text(
+                      statusMessage.toUpperCase(),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              
+              // The Card Logic
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: VisitanteCard(
+                  visitante: visitante,
+                  empresaNome: empresaNome,
+                  viewModel: viewModel,
+                  onSuccess: () => Navigator.pop(context), // Close modal on success
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
+          ),
         ),
       ),
     );
@@ -389,238 +285,4 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 }
 
-class _AccessForm extends StatefulWidget {
-  final Visitante visitante;
-  final HomeViewModel viewModel;
-  final dynamic empresa;
-  final bool isBlocked;
-  final Color statusColor;
-  final IconData statusIcon;
-  final String statusTitle;
-  final String statusMessage;
 
-  const _AccessForm({
-    required this.visitante,
-    required this.viewModel,
-    this.empresa,
-    required this.isBlocked,
-    required this.statusColor,
-    required this.statusIcon,
-    required this.statusTitle,
-    required this.statusMessage,
-  });
-
-  @override
-  State<_AccessForm> createState() => _AccessFormState();
-}
-
-class _AccessFormState extends State<_AccessForm> {
-  final TextEditingController _placaController = TextEditingController();
-  XFile? _veiculoImagem;
-  final ImagePicker _picker = ImagePicker();
-
-  Future<void> _tirarFoto() async {
-    final XFile? photo = await _picker.pickImage(
-      source: ImageSource.camera,
-      maxWidth: 1024,
-      maxHeight: 1024,
-      imageQuality: 80,
-    );
-    if (photo != null) {
-      setState(() => _veiculoImagem = photo);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Status Icon & Header
-            Container(
-              width: 100, height: 100,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle, 
-                color: widget.statusColor.withOpacity(0.1),
-              ),
-              child: Icon(widget.statusIcon, color: widget.statusColor, size: 50),
-            ),
-            const SizedBox(height: 16),
-            
-            Text(
-              widget.statusTitle,
-              style: TextStyle(
-                fontSize: 24, 
-                fontWeight: FontWeight.w900, 
-                color: widget.statusColor,
-                letterSpacing: -0.5,
-              ),
-              textAlign: TextAlign.center,
-            ),
-             const SizedBox(height: 8),
-            Text(
-              widget.visitante.nome,
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 4),
-            Text(
-              widget.statusMessage, 
-              style: TextStyle(
-                color: widget.isBlocked ? Colors.red[700] : Colors.grey[600],
-                fontWeight: widget.isBlocked ? FontWeight.bold : FontWeight.normal,
-                fontSize: 16,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            
-            if (widget.empresa != null) ...[
-                const SizedBox(height: 8),
-                Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                        color: Colors.grey[100],
-                        borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                            const Icon(Icons.business, size: 16, color: Colors.grey),
-                            const SizedBox(width: 8),
-                            Text(widget.empresa.nome, style: const TextStyle(fontWeight: FontWeight.w500)),
-                        ],
-                    ),
-                ),
-            ],
-
-            const SizedBox(height: 24),
-            
-            // Vehicle Plate Field
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _placaController,
-                    decoration: InputDecoration(
-                      labelText: 'Placa do Veículo (Opcional)',
-                      hintText: 'ABC-1234',
-                      prefixIcon: const Icon(Icons.directions_car),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
-                    textCapitalization: TextCapitalization.characters,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                IconButton.outlined(
-                  onPressed: _tirarFoto,
-                  icon: Icon(
-                    _veiculoImagem == null ? Icons.camera_alt : Icons.check_circle,
-                    color: _veiculoImagem == null ? null : Colors.green,
-                  ),
-                  tooltip: 'Foto do Veículo',
-                  style: IconButton.styleFrom(
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    padding: const EdgeInsets.all(16),
-                  ),
-                ),
-              ],
-            ),
-            if (_veiculoImagem != null)
-              Padding(
-                padding: const EdgeInsets.only(top: 8),
-                child: Text(
-                  'Foto capturada: ${_veiculoImagem!.name}',
-                  style: const TextStyle(fontSize: 12, color: Colors.green, fontWeight: FontWeight.bold),
-                ),
-              ),
-
-            const SizedBox(height: 32),
-            
-            // Allow actions even if blocked, as requested
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () async {
-                      try {
-                        await widget.viewModel.registerAccess(
-                          widget.visitante, 
-                          'saida',
-                          placaVeiculo: _placaController.text.isNotEmpty ? _placaController.text : null,
-                          fotoVeiculoUrl: _veiculoImagem?.path,
-                        );
-                        if (mounted) {
-                          Navigator.pop(context);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                                content: Text('Saída de ${widget.visitante.nome} registrada!'),
-                                backgroundColor: Colors.red[700],
-                            ),
-                          );
-                        }
-                      } catch (e) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text(e.toString()), backgroundColor: Colors.red),
-                        );
-                      }
-                    },
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      side: const BorderSide(color: Colors.red),
-                      foregroundColor: Colors.red,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                    ),
-                    child: const Text('SAÍDA', style: TextStyle(fontWeight: FontWeight.bold)),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () async {
-                      try {
-                        await widget.viewModel.registerAccess(
-                          widget.visitante, 
-                          'entrada',
-                          placaVeiculo: _placaController.text.isNotEmpty ? _placaController.text : null,
-                          fotoVeiculoUrl: _veiculoImagem?.path,
-                        );
-                        if (mounted) {
-                          Navigator.pop(context);
-                          if (widget.isBlocked) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                    content: const Text('Entrada REGISTRADA (Alerta: Visitante Bloqueado/Inativo)'),
-                                    backgroundColor: Colors.orange[800],
-                                ),
-                            );
-                          } else {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                    content: Text('Entrada de ${widget.visitante.nome} registrada!'),
-                                    backgroundColor: Colors.green[700],
-                                ),
-                            );
-                          }
-                        }
-                      } catch (e) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text(e.toString()), backgroundColor: Colors.red),
-                        );
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      backgroundColor: const Color(0xFF022C22),
-                      foregroundColor: Colors.white,
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                    ),
-                    child: const Text('ENTRADA', style: TextStyle(fontWeight: FontWeight.bold)),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        );
-  }
-}

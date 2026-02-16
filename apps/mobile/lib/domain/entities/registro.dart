@@ -13,6 +13,7 @@ class Registro {
   final String? visitanteCpfSnapshot;
   final String? visitorPhotoSnapshot;
   final String? empresaNomeSnapshot;
+  final String? statusSnapshot;
 
   final int syncStatus;
 
@@ -29,6 +30,7 @@ class Registro {
     this.visitanteCpfSnapshot,
     this.visitorPhotoSnapshot,
     this.empresaNomeSnapshot,
+    this.statusSnapshot,
     required this.syncStatus,
   });
 }

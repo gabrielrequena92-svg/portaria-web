@@ -152,8 +152,11 @@ class HomeViewModel extends StateNotifier<HomeState> {
     String? fotoVeiculoUrl,
   }) async {
     try {
+      print('🚀 registerAccess START - tipo: $tipo, visitante: ${visitante.nome}');
+      
       // Use BrazilTime to get correct Brazil time regardless of device timezone
       final now = BrazilTime.now();
+      print('✅ BrazilTime.now() = $now');
       
       final registro = Registro(
         id: _uuid.v4(),
@@ -168,15 +171,27 @@ class HomeViewModel extends StateNotifier<HomeState> {
         visitanteCpfSnapshot: visitante.documento,
         visitorPhotoSnapshot: visitante.fotoUrl,
         empresaNomeSnapshot: state.empresas[visitante.empresaId]?.nome ?? '-',
+        statusSnapshot: visitante.status,
         syncStatus: 1, // Pending
       );
+      print('✅ Registro object created: ${registro.id}');
 
       await _registroRepository.saveRegistro(registro);
+      print('✅ Registro saved to local DB');
       
-      // Auto-sync after registration
+      print('🔄 Starting syncData...');
+      // Fire and forget sync to not block UI feedback, or await if critical.
+      // Since we want immediate UI feedback, we can let it run.
+      // However, to ensure data consistency before user leaves, we await.
       await syncData();
-    } catch (e) {
+      print('✅ syncData completed');
+      
+      print('🎉 registerAccess COMPLETED');
+    } catch (e, stackTrace) {
+      print('❌ ERROR in registerAccess: $e');
+      print('Stack trace: $stackTrace');
       state = state.copyWith(errorMessage: 'Erro ao registrar $tipo: $e');
+      // Don't rethrow - handle error silently and update state
     }
   }
 

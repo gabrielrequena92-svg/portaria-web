@@ -85,39 +85,51 @@ export default async function RelatoriosPage({
                     </div>
                 </CardHeader>
                 <CardContent className="p-0">
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-left border-collapse">
-                            <thead>
-                                <tr className="bg-slate-50/50">
-                                    <th className="px-10 py-5 text-xs font-black text-slate-400 uppercase tracking-widest">Visitante</th>
-                                    <th className="px-6 py-5 text-xs font-black text-slate-400 uppercase tracking-widest">Empresa (Snapshot)</th>
-                                    <th className="px-6 py-5 text-xs font-black text-slate-400 uppercase tracking-widest text-center">Tipo</th>
-                                    <th className="px-6 py-5 text-xs font-black text-slate-400 uppercase tracking-widest">Data / Horário</th>
-                                    <th className="px-10 py-5 text-xs font-black text-slate-400 uppercase tracking-widest text-right">Ações</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-slate-50">
-                                {registros?.map((registro) => (
+                    <table className="w-full text-left border-collapse">
+                        <thead>
+                            <tr className="bg-slate-50/50">
+                                <th className="px-6 py-5 text-xs font-black text-slate-400 uppercase tracking-widest w-[80px]">Foto</th>
+                                <th className="px-6 py-5 text-xs font-black text-slate-400 uppercase tracking-widest">Visitante / Status</th>
+                                <th className="px-6 py-5 text-xs font-black text-slate-400 uppercase tracking-widest">Empresa</th>
+                                <th className="px-6 py-5 text-xs font-black text-slate-400 uppercase tracking-widest w-[160px]">Veículo</th>
+                                <th className="px-6 py-5 text-xs font-black text-slate-400 uppercase tracking-widest text-center">Tipo</th>
+                                <th className="px-6 py-5 text-xs font-black text-slate-400 uppercase tracking-widest text-right">Data / Horário</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-50">
+                            {registros?.map((registro) => {
+                                // Status Snapshot handling
+                                const statusLabel = registro.status_snapshot?.toUpperCase() || '-';
+                                const isBlocked = statusLabel === 'BLOQUEADO';
+
+                                return (
                                     <tr key={registro.id} className="group hover:bg-slate-50/80 transition-all">
-                                        <td className="px-10 py-6">
-                                            <div className="flex items-center gap-4">
-                                                <Avatar className="h-12 w-12 ring-2 ring-white shadow-sm group-hover:scale-110 transition-transform">
-                                                    <AvatarImage src={registro.visitor_photo_snapshot || ''} />
-                                                    <AvatarFallback className="bg-primary/10 text-primary font-bold">
-                                                        {registro.visitante_nome_snapshot?.[0] || 'V'}
-                                                    </AvatarFallback>
-                                                </Avatar>
-                                                <div>
-                                                    <div className="text-base font-bold text-slate-900 leading-tight">
-                                                        {registro.visitante_nome_snapshot}
-                                                    </div>
-                                                    <div className="text-xs font-black text-slate-400 mt-1 uppercase tracking-tighter">
-                                                        CPF: {registro.visitante_cpf_snapshot}
-                                                    </div>
+                                        <td className="px-6 py-4">
+                                            <Avatar className="h-12 w-12 ring-2 ring-white shadow-sm group-hover:scale-110 transition-transform">
+                                                <AvatarImage src={registro.visitor_photo_snapshot || ''} className="object-cover" />
+                                                <AvatarFallback className="bg-primary/10 text-primary font-bold">
+                                                    {registro.visitante_nome_snapshot?.[0] || 'V'}
+                                                </AvatarFallback>
+                                            </Avatar>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <div className="flex flex-col">
+                                                <div className="text-base font-bold text-slate-900 leading-tight">
+                                                    {registro.visitante_nome_snapshot}
+                                                </div>
+                                                <div className="flex items-center gap-2 mt-1">
+                                                    <span className="text-xs font-black text-slate-400 uppercase tracking-tighter">
+                                                        CPF: {registro.visitante_cpf_snapshot || '-'}
+                                                    </span>
+                                                    {registro.status_snapshot && (
+                                                        <Badge variant="outline" className={`text-[10px] h-5 px-2 border-0 ${isBlocked ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
+                                                            {statusLabel}
+                                                        </Badge>
+                                                    )}
                                                 </div>
                                             </div>
                                         </td>
-                                        <td className="px-6 py-6">
+                                        <td className="px-6 py-4">
                                             <div className="flex items-center gap-2">
                                                 <Building2 className="h-4 w-4 text-slate-400" />
                                                 <span className="text-sm font-bold text-slate-600">
@@ -125,9 +137,37 @@ export default async function RelatoriosPage({
                                                 </span>
                                             </div>
                                         </td>
-                                        <td className="px-6 py-6 text-center">
+                                        <td className="px-6 py-4">
+                                            {registro.placa_veiculo ? (
+                                                <div className="flex items-center gap-3">
+                                                    {registro.foto_veiculo_url ? (
+                                                        <div className="h-10 w-16 bg-slate-100 rounded-lg overflow-hidden border border-slate-200 shadow-sm group/car relative">
+                                                            {/* Thumbnail */}
+                                                            <img
+                                                                src={registro.foto_veiculo_url}
+                                                                alt="Veículo"
+                                                                className="h-full w-full object-cover transform transition-transform group-hover/car:scale-110"
+                                                            />
+                                                        </div>
+                                                    ) : (
+                                                        <div className="h-10 w-10 bg-slate-100 rounded-lg flex items-center justify-center text-slate-400">
+                                                            <Building2 className="h-5 w-5" />
+                                                        </div>
+                                                    )}
+                                                    <div className="flex flex-col">
+                                                        <span className="text-sm font-black text-slate-800 uppercase tracking-wider font-mono">
+                                                            {registro.placa_veiculo}
+                                                        </span>
+                                                        <span className="text-[10px] text-slate-400 font-bold uppercase">Placa</span>
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                <span className="text-xs text-slate-400 font-medium italic">Sem veículo</span>
+                                            )}
+                                        </td>
+                                        <td className="px-6 py-4 text-center">
                                             <Badge
-                                                className={`rounded-full px-4 py-1 text-[10px] font-black uppercase tracking-widest border-none shadow-sm ${registro.tipo === 'entrada'
+                                                className={`rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-widest border-none shadow-sm ${registro.tipo === 'entrada'
                                                     ? 'bg-emerald-100 text-emerald-700'
                                                     : 'bg-blue-100 text-blue-700'
                                                     }`}
@@ -135,8 +175,8 @@ export default async function RelatoriosPage({
                                                 {registro.tipo}
                                             </Badge>
                                         </td>
-                                        <td className="px-6 py-6">
-                                            <div className="flex flex-col">
+                                        <td className="px-6 py-4 text-right">
+                                            <div className="flex flex-col items-end">
                                                 <span className="text-sm font-black text-slate-900">
                                                     {formatDate(registro.data_registro)}
                                                 </span>
@@ -146,16 +186,11 @@ export default async function RelatoriosPage({
                                                 </span>
                                             </div>
                                         </td>
-                                        <td className="px-10 py-6 text-right">
-                                            <Button variant="ghost" size="sm" className="rounded-xl h-10 w-10 p-0 text-slate-400 hover:text-primary hover:bg-primary/5 transition-all">
-                                                <FileText className="h-5 w-5" />
-                                            </Button>
-                                        </td>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
+                                )
+                            })}
+                        </tbody>
+                    </table>
 
                     {(!registros || registros.length === 0) && (
                         <div className="py-40 text-center bg-slate-50/30">
@@ -168,6 +203,6 @@ export default async function RelatoriosPage({
                     )}
                 </CardContent>
             </Card>
-        </div>
+        </div >
     )
 }

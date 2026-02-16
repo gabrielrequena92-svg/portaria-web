@@ -60,6 +60,7 @@ class Registros extends Table {
   TextColumn get visitanteCpfSnapshot => text().nullable()();
   TextColumn get visitorPhotoSnapshot => text().nullable()();
   TextColumn get empresaNomeSnapshot => text().nullable()();
+  TextColumn get statusSnapshot => text().nullable()();
 
   IntColumn get syncStatus => integer().withDefault(const Constant(1))(); // 1 = Pending Upload
   DateTimeColumn get createdAt => dateTime()();

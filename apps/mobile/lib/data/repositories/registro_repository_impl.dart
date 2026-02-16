@@ -28,6 +28,7 @@ class RegistroRepositoryImpl implements RegistroRepository {
       visitanteCpfSnapshot: registro.visitanteCpfSnapshot,
       visitorPhotoSnapshot: registro.visitorPhotoSnapshot,
       empresaNomeSnapshot: registro.empresaNomeSnapshot,
+      statusSnapshot: registro.statusSnapshot,
       syncStatus: 1, // Pending Upload
     );
     

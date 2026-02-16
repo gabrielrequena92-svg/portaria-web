@@ -16,7 +16,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 3; // Incremented version to add missing columns manually
+  int get schemaVersion => 4; // Incremented version to add statusSnapshot
   
   @override
   MigrationStrategy get migration {
@@ -46,6 +46,16 @@ class AppDatabase extends _$AppDatabase {
           await addSafely(registros.visitanteCpfSnapshot);
           await addSafely(registros.visitorPhotoSnapshot);
           await addSafely(registros.empresaNomeSnapshot);
+        } else if (from < 4) {
+             Future<void> addSafely(GeneratedColumn col) async {
+            try {
+              await m.addColumn(registros, col);
+            } catch (e) {
+              if (e.toString().contains('duplicate column name')) return;
+              rethrow;
+            }
+          }
+          await addSafely(registros.statusSnapshot);
         }
       },
     );
