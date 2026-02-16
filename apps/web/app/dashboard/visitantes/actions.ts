@@ -27,8 +27,8 @@ export async function createOrUpdateVisitor(prevState: any, formData: FormData) 
         .eq('id', user.id)
         .single()
 
-    // Fallback para o condomínio padrão se o perfil não estiver configurado (evita erro de bloqueio)
-    const condomioId = profile?.condominio_id || 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'
+    // Fallback para o condomínio padrão se o perfil não estiver configurado
+    const condominioId = profile?.condominio_id || 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'
 
     const rawData = {
         id: formData.get('id') as string,
@@ -82,8 +82,8 @@ export async function createOrUpdateVisitor(prevState: any, formData: FormData) 
 
     const dataToSave = {
         ...data,
-        condominio_id: condomioId,
-        ...(photoUrl ? { foto_url: photoUrl } : {}) // Só atualiza se tiver nova foto
+        condominio_id: condominioId,
+        ...(photoUrl ? { foto_url: photoUrl } : {})
     }
 
     if (id) {
@@ -92,7 +92,7 @@ export async function createOrUpdateVisitor(prevState: any, formData: FormData) 
             .from('visitantes')
             .update(dataToSave)
             .eq('id', id)
-            .eq('condominio_id', condomioId)
+            .eq('condominio_id', condominioId)
         error = result.error
     } else {
         // Create
@@ -103,21 +103,26 @@ export async function createOrUpdateVisitor(prevState: any, formData: FormData) 
     }
 
     if (error) {
-        console.error(error)
-        if (error.code === '23505') { // Unique violation
+        console.error('Erro DB:', error)
+        if (error.code === '23505') {
             return { message: 'Já existe um visitante com este CPF neste condomínio.' }
         }
-        return { message: 'Erro ao salvar visitante no banco de dados.' }
+        return { message: `Erro ao salvar visitante: ${error.message}` }
     }
 
     revalidatePath('/dashboard/visitantes')
 
     // Return the ID for QR Code generation (if new)
-    const finalId = id || (error === null ? (await supabase.from('visitantes').select('id').eq('cpf', data.cpf).eq('condominio_id', condomioId).single()).data?.id : null)
+    const { data: savedVisitor } = await supabase
+        .from('visitantes')
+        .select('id')
+        .eq('cpf', data.cpf)
+        .eq('condominio_id', condominioId)
+        .single()
 
     return {
-        message: 'Sucesso!',
+        message: 'Visitante salvo com sucesso! (v3)',
         success: true,
-        visitorId: finalId
+        visitorId: id || savedVisitor?.id
     }
 }
