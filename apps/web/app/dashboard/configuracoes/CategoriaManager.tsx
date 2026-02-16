@@ -21,7 +21,11 @@ export function CategoriaManager({ tipos }: { tipos: any[] }) {
     const [isOpen, setIsOpen] = useState(false)
     const [editingTipo, setEditingTipo] = useState<any>(null)
 
+    const [isLoading, setIsLoading] = useState(false)
+
     async function handleSubmit(formData: FormData) {
+        if (isLoading) return
+        setIsLoading(true)
         try {
             await upsertTipoVisitante(formData)
             setIsOpen(false)
@@ -29,6 +33,8 @@ export function CategoriaManager({ tipos }: { tipos: any[] }) {
             toast.success('Categoria salva com sucesso!')
         } catch (error) {
             toast.error('Erro ao salvar categoria.')
+        } finally {
+            setIsLoading(false)
         }
     }
 
@@ -83,8 +89,8 @@ export function CategoriaManager({ tipos }: { tipos: any[] }) {
                                 </div>
                             </div>
                             <DialogFooter>
-                                <Button type="submit" className="bg-primary rounded-xl w-full">
-                                    Salvar Alterações
+                                <Button type="submit" disabled={isLoading} className="bg-primary rounded-xl w-full">
+                                    {isLoading ? 'Salvando...' : 'Salvar Alterações'}
                                 </Button>
                             </DialogFooter>
                         </form>

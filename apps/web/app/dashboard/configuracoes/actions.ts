@@ -9,10 +9,14 @@ export async function updateCondominio(formData: FormData) {
     const nome = formData.get('nome') as string
     const endereco = formData.get('endereco') as string
 
+    // Como só deve existir um condomínio, usamos upsert
+    // Se não houver ID (primeira vez), o Supabase cria um novo
+    const payload: any = { nome, endereco }
+    if (id) payload.id = id
+
     const { error } = await supabase
         .from('condominios')
-        .update({ nome, endereco })
-        .eq('id', id)
+        .upsert(payload)
 
     if (error) throw error
 
