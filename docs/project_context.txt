@@ -16,6 +16,7 @@ Este documento serve como a **memória de longo prazo** para o agente (Antigravi
 *   **Debugging Proativo:** Capacidade de identificar e corrigir breaking changes (ex: `cookies()` assíncronos no Next.js 16, conflitos de rota, erros de cache de schema).
 *   **DevOps Básico:** Configuração de deploy (Vercel/Render) e scripts de automação.
 *   **Geração de Assets com IA:** Criação de mockups de UI de alta fidelidade e ícones para prototipagem rápida.
+*   **PWA & Mobile Sync:** Implementação de Progressive Web Apps e lógica de sincronização bidirecional (Drift/Supabase).
 
 ---
 
