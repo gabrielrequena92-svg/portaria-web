@@ -76,21 +76,19 @@ export const generateVisitorBadge = async (data: VisitorBadgeData) => {
 
     // "VISITANTE" Label (Below Header)
     doc.setFillColor(5, 150, 105) // Emerald-600
-    doc.rect(frontX, frontY + headerHeight, badgeWidth, 8, 'F')
+    doc.rect(frontX, frontY + headerHeight, badgeWidth, 7, 'F') // Reduced height slightly
     doc.setTextColor(255, 255, 255)
-    doc.setFontSize(9)
+    doc.setFontSize(10) // Increased slightly for readability
     doc.setFont('helvetica', 'bold')
-    doc.setCharSpace(2)
-    doc.text('VISITANTE', centerX, frontY + headerHeight + 5.5, { align: 'center' })
-    doc.setCharSpace(0)
+    // Remove charSpace to avoid alignment issues for now, or use strict centering logic
+    doc.text('VISITANTE', centerX, frontY + headerHeight + 5, { align: 'center' })
 
     // 3. Photo (Prominent)
-    const photoSize = 32
-    const photoY = frontY + headerHeight + 14
+    const photoSize = 34 // Slightly larger
+    const photoY = frontY + headerHeight + 12
 
     if (data.fotoUrl) {
         try {
-            // Circular clipping for photo? Or Rounded Rect? Let's stick to Rounded Rect standard
             doc.addImage(data.fotoUrl, 'JPEG', centerX - (photoSize / 2), photoY, photoSize, photoSize)
             // Border around photo
             doc.setDrawColor(226, 232, 240)
@@ -101,44 +99,61 @@ export const generateVisitorBadge = async (data: VisitorBadgeData) => {
             doc.setFillColor(241, 245, 249)
             doc.roundedRect(centerX - (photoSize / 2), photoY, photoSize, photoSize, 2, 2, 'F')
             doc.setTextColor(148, 163, 184)
-            doc.setFontSize(8)
+            doc.setFontSize(9)
             doc.text('FOTO', centerX, photoY + (photoSize / 2), { align: 'center' })
         }
     } else {
         doc.setFillColor(241, 245, 249)
         doc.roundedRect(centerX - (photoSize / 2), photoY, photoSize, photoSize, 2, 2, 'F')
         doc.setTextColor(148, 163, 184)
-        doc.setFontSize(8)
+        doc.setFontSize(9)
         doc.text('SEM FOTO', centerX, photoY + (photoSize / 2), { align: 'center' })
     }
 
     // 4. Visitor Details
-    let currentY = photoY + photoSize + 8
+    let currentY = photoY + photoSize + 6
 
-    // Name
+    // Name - Auto-scaling logic
     doc.setTextColor(15, 23, 42) // Slate-900
-    doc.setFontSize(14) // Larger
     doc.setFont('helvetica', 'bold')
-    const splitName = doc.splitTextToSize(data.nome.toUpperCase(), badgeWidth - 6)
-    doc.text(splitName, centerX, currentY, { align: 'center' })
-    currentY += (splitName.length * 6) + 2
 
-    // CPF
-    doc.setFontSize(10)
-    doc.setTextColor(71, 85, 105) // Slate-600
-    doc.setFont('helvetica', 'normal')
-    doc.text(data.cpf, centerX, currentY, { align: 'center' })
-    currentY += 6
+    const maxNameWidth = badgeWidth - 8
+    let nameFontSize = 14
+    let splitName = doc.splitTextToSize(data.nome.toUpperCase(), maxNameWidth)
+
+    // Attempt to fit in fewer lines by reducing font size if necessary
+    if (splitName.length > 2) {
+        nameFontSize = 11
+        doc.setFontSize(nameFontSize)
+        splitName = doc.splitTextToSize(data.nome.toUpperCase(), maxNameWidth)
+    } else if (splitName.length === 2 && splitName[0].length > 10) {
+        // Even if 2 lines, if they are long, reduce a bit
+        nameFontSize = 12
+        doc.setFontSize(nameFontSize)
+        splitName = doc.splitTextToSize(data.nome.toUpperCase(), maxNameWidth)
+    } else {
+        doc.setFontSize(nameFontSize)
+    }
+
+    doc.text(splitName, centerX, currentY, { align: 'center', lineHeightFactor: 1.1 })
+    currentY += (splitName.length * (nameFontSize * 0.4)) + 3 // Adjust spacing based on line count
 
     // Company (if exists)
     if (data.empresa) {
-        currentY += 2
         doc.setFontSize(9)
         doc.setTextColor(100, 116, 139) // Slate-500
         doc.setFont('helvetica', 'italic')
-        const splitCompany = doc.splitTextToSize(data.empresa.toUpperCase(), badgeWidth - 6)
+        const splitCompany = doc.splitTextToSize(data.empresa.toUpperCase(), maxNameWidth)
         doc.text(splitCompany, centerX, currentY, { align: 'center' })
+        currentY += (splitCompany.length * 4) + 1
     }
+
+    // CPF
+    currentY += 3
+    doc.setFontSize(9)
+    doc.setTextColor(71, 85, 105) // Slate-600
+    doc.setFont('helvetica', 'normal')
+    doc.text(data.cpf, centerX, currentY, { align: 'center' })
 
     // --- BACK SIDE (QR Code) ---
     const backX = centerX - (badgeWidth / 2)
