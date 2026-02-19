@@ -72,6 +72,7 @@ export function VisitorDialog({ visitor, empresas, tiposVisitantes, condominioId
                 setRegisteredId(null)
                 setFieldErrors({})
                 setGeneralError(null)
+                setPreviewUrl(null) // Reset photo preview
             }, 300)
         }
     }

@@ -124,28 +124,27 @@ export default async function DashboardPage({
         <div className="max-w-[1600px] mx-auto space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-1000">
             {/* 1. Top Banner (Premium Glassmorphism Center) */}
             <div className="relative group perspective-1000">
-                <div className="relative overflow-hidden rounded-[2rem] bg-primary p-10 md:p-16 text-white shadow-[0_32px_64px_-16px_rgba(2,44,34,0.3)] transition-all duration-500 group-hover:shadow-[0_48px_80px_-20px_rgba(2,44,34,0.4)]">
-                    <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-10">
-                        <div className="space-y-6 max-w-3xl">
-                            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-xs font-bold tracking-widest uppercase">
-                                <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+                <div className="relative overflow-hidden rounded-[2rem] bg-primary p-6 md:p-10 text-white shadow-[0_32px_64px_-16px_rgba(2,44,34,0.3)] transition-all duration-500 group-hover:shadow-[0_48px_80px_-20px_rgba(2,44,34,0.4)]">
+                    <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+                        <div className="space-y-4 max-w-3xl">
+                            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-[10px] font-bold tracking-widest uppercase">
+                                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
                                 Monitoramento em Tempo Real
                             </div>
-                            <h2 className="text-4xl md:text-6xl font-black tracking-tighter leading-[0.9]">
-                                Olá, <span className="capitalize">{userName}</span>.<br />
-                                <span className="text-white/40">O sistema está operacional.</span>
+                            <h2 className="text-2xl md:text-3xl font-black tracking-tighter leading-tight">
+                                Olá, <span className="capitalize">{userName}</span>.
                             </h2>
-                            <p className="text-primary-foreground/60 text-lg md:text-xl font-medium max-w-xl">
-                                Atualmente existem <span className="text-white font-bold underline decoration-emerald-500/50 underline-offset-8">{totalInPerimeter} {totalInPerimeter === 1 ? 'pessoa' : 'pessoas'}</span> dentro do perímetro. Todos os acessos estão validados.
+                            <p className="text-primary-foreground/60 text-sm md:text-base font-medium max-w-xl">
+                                Atualmente existem <span className="text-white font-bold underline decoration-emerald-500/50 underline-offset-4">{totalInPerimeter} {totalInPerimeter === 1 ? 'pessoa' : 'pessoas'}</span> dentro do perímetro.
                             </p>
                         </div>
 
                         {/* High-Tech Security Abstract Graphics */}
-                        <div className="hidden xl:block relative h-64 w-64">
-                            <div className="absolute inset-0 border-[16px] border-white/5 rounded-full" />
-                            <div className="absolute inset-4 border-[1px] border-dashed border-white/20 rounded-full animate-[spin_20s_linear_infinite]" />
-                            <div className="absolute inset-10 bg-gradient-to-br from-emerald-400/20 to-transparent rounded-full backdrop-blur-2xl" />
-                            <Users className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-20 w-20 text-white/20" />
+                        <div className="hidden xl:block relative h-40 w-40">
+                            <div className="absolute inset-0 border-[12px] border-white/5 rounded-full" />
+                            <div className="absolute inset-2 border-[1px] border-dashed border-white/20 rounded-full animate-[spin_20s_linear_infinite]" />
+                            <div className="absolute inset-6 bg-gradient-to-br from-emerald-400/20 to-transparent rounded-full backdrop-blur-2xl" />
+                            <Users className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-12 w-12 text-white/20" />
                         </div>
                     </div>
 
@@ -161,19 +160,16 @@ export default async function DashboardPage({
                     <Card className="h-full border-none shadow-[0_8px_30px_rgb(0,0,0,0.04)] bg-white rounded-3xl overflow-hidden group hover:bg-primary transition-all duration-500 cursor-pointer">
                         <CardHeader className="flex flex-row items-center justify-between p-8 pb-4">
                             <CardTitle className="text-xs font-black uppercase tracking-[0.2em] text-slate-400 group-hover:text-white/50 transition-colors">
-                                Visitantes no Local
+                                Visitantes Cadastrados
                             </CardTitle>
                             <div className="h-12 w-12 rounded-2xl bg-emerald-50 flex items-center justify-center group-hover:bg-white/10 transition-colors">
                                 <UserCheck className="h-6 w-6 text-emerald-600 group-hover:text-white" />
                             </div>
                         </CardHeader>
                         <CardContent className="p-8 pt-0">
-                            <div className="text-5xl font-black tracking-tighter group-hover:text-white transition-colors">{visitantesAtivos}</div>
+                            <div className="text-5xl font-black tracking-tighter group-hover:text-white transition-colors">{totalVisitantes}</div>
                             <div className="mt-4 flex items-center gap-2">
-                                <div className="h-1.5 flex-1 bg-slate-100 rounded-full overflow-hidden group-hover:bg-white/10">
-                                    <div className="h-full bg-emerald-500 w-[65%]" />
-                                </div>
-                                <span className="text-[10px] font-bold text-emerald-600 group-hover:text-emerald-400">Capacidade: 65%</span>
+                                <span className="text-[10px] font-bold text-slate-400 group-hover:text-white/60">Total desde o início</span>
                             </div>
                         </CardContent>
                     </Card>
