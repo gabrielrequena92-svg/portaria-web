@@ -78,8 +78,8 @@ export const generateVisitorBadge = async (data: VisitorBadgeData) => {
     // Adjusting layout to move everything up
 
     // 3. Photo (Prominent)
-    const photoSize = 36 // Slightly larger for better visibility
-    const photoY = frontY + headerHeight + 6 // Moved up significantly
+    const photoSize = 25 // Reduced significantly as requested
+    const photoY = frontY + headerHeight + 5 // Moves photo up
 
     if (data.fotoUrl) {
         try {
@@ -93,57 +93,47 @@ export const generateVisitorBadge = async (data: VisitorBadgeData) => {
             doc.setFillColor(241, 245, 249)
             doc.roundedRect(centerX - (photoSize / 2), photoY, photoSize, photoSize, 2, 2, 'F')
             doc.setTextColor(148, 163, 184)
-            doc.setFontSize(9)
+            doc.setFontSize(8)
             doc.text('FOTO', centerX, photoY + (photoSize / 2), { align: 'center' })
         }
     } else {
         doc.setFillColor(241, 245, 249)
         doc.roundedRect(centerX - (photoSize / 2), photoY, photoSize, photoSize, 2, 2, 'F')
         doc.setTextColor(148, 163, 184)
-        doc.setFontSize(9)
+        doc.setFontSize(8)
         doc.text('SEM FOTO', centerX, photoY + (photoSize / 2), { align: 'center' })
     }
 
     // 4. Visitor Details
-    let currentY = photoY + photoSize + 8
+    let currentY = photoY + photoSize + 7
 
-    // Name - Auto-scaling logic
+    // Name - Fixed to size 10 as requested
     doc.setTextColor(15, 23, 42) // Slate-900
     doc.setFont('helvetica', 'bold')
 
+    // Strict Font 10
     const maxNameWidth = badgeWidth - 8
-    let nameFontSize = 15 // Started larger
-    let splitName = doc.splitTextToSize(data.nome.toUpperCase(), maxNameWidth)
+    doc.setFontSize(10)
 
-    // Attempt to fit in fewer lines by reducing font size if necessary
-    if (splitName.length > 2) {
-        nameFontSize = 12
-        doc.setFontSize(nameFontSize)
-        splitName = doc.splitTextToSize(data.nome.toUpperCase(), maxNameWidth)
-    } else if (splitName.length === 2 && splitName[0].length > 10) {
-        // Even if 2 lines, if they are long, reduce a bit
-        nameFontSize = 13
-        doc.setFontSize(nameFontSize)
-        splitName = doc.splitTextToSize(data.nome.toUpperCase(), maxNameWidth)
-    } else {
-        doc.setFontSize(nameFontSize)
-    }
-
-    doc.text(splitName, centerX, currentY, { align: 'center', lineHeightFactor: 1.1 })
-    currentY += (splitName.length * (nameFontSize * 0.4)) + 4
+    const splitName = doc.splitTextToSize(data.nome.toUpperCase(), maxNameWidth)
+    doc.text(splitName, centerX, currentY, { align: 'center', lineHeightFactor: 1.15 })
+    currentY += (splitName.length * 4) + 3
 
     // Company (if exists)
     if (data.empresa) {
-        doc.setFontSize(11) // Increased visibility
+        doc.setFontSize(10) // Fixed to size 10
         doc.setTextColor(5, 150, 105) // Emerald-600
         doc.setFont('helvetica', 'bold')
         const splitCompany = doc.splitTextToSize(data.empresa.toUpperCase(), maxNameWidth)
-        doc.text(splitCompany, centerX, currentY, { align: 'center' })
+        doc.text(splitCompany, centerX, currentY, { align: 'center', lineHeightFactor: 1.15 })
         currentY += (splitCompany.length * 4) + 3
+    } else {
+        // Add a small gap if no company, to separate CPF
+        currentY += 2
     }
 
     // CPF
-    doc.setFontSize(10)
+    doc.setFontSize(10) // Fixed to size 10
     doc.setTextColor(71, 85, 105) // Slate-600
     doc.setFont('helvetica', 'normal')
     doc.text(data.cpf, centerX, currentY, { align: 'center' })
