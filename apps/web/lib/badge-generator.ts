@@ -19,165 +19,166 @@ export const generateVisitorBadge = async (data: VisitorBadgeData) => {
     const pageWidth = doc.internal.pageSize.getWidth()
     const pageHeight = doc.internal.pageSize.getHeight()
 
-    // Badge Dimensions (Vertical Credit Card size)
+    // Badge Dimensions (CR80 Credit Card size: 85.60 × 53.98 mm)
     const badgeWidth = 54
-    const badgeHeight = 85
+    const badgeHeight = 86
 
     // Calculate positions to center both sides
     const centerX = pageWidth / 2
-    const startY = 40 // Top margin
-    const gap = 20 // Gap between front and back
+    const startY = 30 // Top margin
+    const gap = 15 // Gap between front and back
 
     // --- FRONT SIDE ---
     const frontX = centerX - (badgeWidth / 2)
     const frontY = startY
 
     // 1. Background & Border
-    doc.setDrawColor(230, 230, 230)
+    doc.setDrawColor(200, 200, 200)
     doc.setFillColor(255, 255, 255)
     doc.roundedRect(frontX, frontY, badgeWidth, badgeHeight, 3, 3, 'FD')
 
-    // 2. Header Block
+    // 2. Header Block (Logo + System Name)
+    const headerHeight = 22
+    doc.setFillColor(255, 255, 255) // White background for header to make logo pop
+    // Draw bottom border for header
+    doc.setDrawColor(226, 232, 240) // Slate-200
+    doc.setLineWidth(0.5)
+    doc.line(frontX, frontY + headerHeight, frontX + badgeWidth, frontY + headerHeight)
+
+    // Logo & System Name Calculation
+    try {
+        // Logo (Left aligned in header)
+        doc.addImage('/logo.png', 'PNG', frontX + 4, frontY + 4, 14, 14) // Assuming logo.png exists and is square-ish
+
+        // System Name (Right of logo)
+        doc.setTextColor(15, 23, 42) // Slate-900
+        doc.setFontSize(12)
+        doc.setFont('helvetica', 'bold')
+        doc.text('Portaria', frontX + 22, frontY + 10)
+
+        doc.setTextColor(100, 116, 139) // Slate-500
+        doc.setFontSize(10)
+        doc.setFont('helvetica', 'bold')
+        doc.text('SaaS', frontX + 41, frontY + 10) // Small "SaaS" suffix
+
+        doc.setFontSize(7)
+        doc.setTextColor(148, 163, 184) // Slate-400
+        doc.setFont('helvetica', 'normal')
+        doc.text('CONTROLE DE ACESSO', frontX + 22, frontY + 15)
+
+    } catch (e) {
+        // Fallback if logo fails
+        doc.setTextColor(15, 23, 42)
+        doc.setFontSize(14)
+        doc.setFont('helvetica', 'bold')
+        doc.text('Portaria SaaS', centerX, frontY + 12, { align: 'center' })
+    }
+
+    // "VISITANTE" Label (Below Header)
     doc.setFillColor(5, 150, 105) // Emerald-600
-    doc.rect(frontX, frontY, badgeWidth, 24, 'F')
-
-    // Header Pattern
-    doc.setFillColor(255, 255, 255)
-    // @ts-ignore - GState constructor type missing in jspdf types
-    doc.setGState(new doc.GState({ opacity: 0.1 }))
-    doc.circle(frontX + badgeWidth - 5, frontY + 5, 10, 'F')
-    doc.circle(frontX + 5, frontY + 20, 15, 'F')
-    // @ts-ignore
-    doc.setGState(new doc.GState({ opacity: 1.0 }))
-
-    // "VISITANTE" Label
+    doc.rect(frontX, frontY + headerHeight, badgeWidth, 8, 'F')
     doc.setTextColor(255, 255, 255)
     doc.setFontSize(9)
     doc.setFont('helvetica', 'bold')
     doc.setCharSpace(2)
-    doc.text('VISITANTE', centerX, frontY + 10, { align: 'center' })
+    doc.text('VISITANTE', centerX, frontY + headerHeight + 5.5, { align: 'center' })
     doc.setCharSpace(0)
 
-    // 3. Photo
-    const photoSize = 28
-    const photoY = frontY + 14 // Starts inside header
-
-    // Photo Background (White Box behind)
-    doc.setFillColor(255, 255, 255)
-    doc.roundedRect(centerX - (photoSize / 2) - 1, photoY - 1, photoSize + 2, photoSize + 2, 2, 2, 'F')
+    // 3. Photo (Prominent)
+    const photoSize = 32
+    const photoY = frontY + headerHeight + 14
 
     if (data.fotoUrl) {
         try {
-            // Square photo with rounded white border effect via the background rect above
+            // Circular clipping for photo? Or Rounded Rect? Let's stick to Rounded Rect standard
             doc.addImage(data.fotoUrl, 'JPEG', centerX - (photoSize / 2), photoY, photoSize, photoSize)
+            // Border around photo
+            doc.setDrawColor(226, 232, 240)
+            doc.setLineWidth(0.5)
+            doc.roundedRect(centerX - (photoSize / 2), photoY, photoSize, photoSize, 2, 2, 'S')
         } catch (e) {
             // Fallback
             doc.setFillColor(241, 245, 249)
-            doc.rect(centerX - (photoSize / 2), photoY, photoSize, photoSize, 'F')
+            doc.roundedRect(centerX - (photoSize / 2), photoY, photoSize, photoSize, 2, 2, 'F')
             doc.setTextColor(148, 163, 184)
             doc.setFontSize(8)
-            doc.text('FOTO', centerX, photoY + (photoSize / 2) + 3, { align: 'center' })
+            doc.text('FOTO', centerX, photoY + (photoSize / 2), { align: 'center' })
         }
     } else {
         doc.setFillColor(241, 245, 249)
-        doc.rect(centerX - (photoSize / 2), photoY, photoSize, photoSize, 'F')
+        doc.roundedRect(centerX - (photoSize / 2), photoY, photoSize, photoSize, 2, 2, 'F')
+        doc.setTextColor(148, 163, 184)
+        doc.setFontSize(8)
+        doc.text('SEM FOTO', centerX, photoY + (photoSize / 2), { align: 'center' })
     }
 
-    // 4. Content Content
-    const contentStartY = photoY + photoSize + 8
+    // 4. Visitor Details
+    let currentY = photoY + photoSize + 8
 
-    // Visitor Name
+    // Name
     doc.setTextColor(15, 23, 42) // Slate-900
-    doc.setFontSize(13)
+    doc.setFontSize(14) // Larger
     doc.setFont('helvetica', 'bold')
-
-    // Handle long names
-    let nameY = contentStartY
     const splitName = doc.splitTextToSize(data.nome.toUpperCase(), badgeWidth - 6)
-
-    if (splitName.length > 2) {
-        // Truncate if too long (rare)
-        doc.text(splitName[0] + ' ' + splitName[1] + '...', centerX, nameY, { align: 'center' })
-        nameY += 6
-    } else {
-        doc.text(splitName, centerX, nameY, { align: 'center', lineHeightFactor: 1.15 })
-        nameY += (splitName.length * 5) + 2
-    }
-
-    // Divider
-    doc.setDrawColor(226, 232, 240)
-    doc.setLineWidth(0.5)
-    doc.line(centerX - 8, nameY + 2, centerX + 8, nameY + 2)
-
-    // Company
-    nameY += 8
-    if (data.empresa) {
-        doc.setFontSize(9)
-        doc.setTextColor(5, 150, 105) // Emerald-600
-        doc.setFont('helvetica', 'bold')
-        const splitCompany = doc.splitTextToSize(data.empresa.toUpperCase(), badgeWidth - 6)
-        doc.text(splitCompany, centerX, nameY, { align: 'center' })
-        nameY += (splitCompany.length * 4) + 2
-    } else {
-        doc.setFontSize(9)
-        doc.setTextColor(100, 116, 139)
-        doc.setFont('helvetica', 'italic')
-        doc.text('Particular', centerX, nameY, { align: 'center' })
-        nameY += 6
-    }
+    doc.text(splitName, centerX, currentY, { align: 'center' })
+    currentY += (splitName.length * 6) + 2
 
     // CPF
-    nameY += 2
-    doc.setFontSize(8)
+    doc.setFontSize(10)
+    doc.setTextColor(71, 85, 105) // Slate-600
     doc.setFont('helvetica', 'normal')
-    doc.setTextColor(100, 116, 139)
-    doc.text(data.cpf, centerX, nameY, { align: 'center' })
+    doc.text(data.cpf, centerX, currentY, { align: 'center' })
+    currentY += 6
 
-    // Footer Logo
-    doc.addImage('/logo-icon.png', 'PNG', centerX - 4, frontY + badgeHeight - 10, 8, 8)
+    // Company (if exists)
+    if (data.empresa) {
+        currentY += 2
+        doc.setFontSize(9)
+        doc.setTextColor(100, 116, 139) // Slate-500
+        doc.setFont('helvetica', 'italic')
+        const splitCompany = doc.splitTextToSize(data.empresa.toUpperCase(), badgeWidth - 6)
+        doc.text(splitCompany, centerX, currentY, { align: 'center' })
+    }
 
     // --- BACK SIDE (QR Code) ---
     const backX = centerX - (badgeWidth / 2)
     const backY = frontY + badgeHeight + gap
 
     // Border
-    doc.setDrawColor(230, 230, 230)
+    doc.setDrawColor(200, 200, 200)
     doc.setFillColor(255, 255, 255)
     doc.roundedRect(backX, backY, badgeWidth, badgeHeight, 3, 3, 'FD')
 
-    // Top Instruction
-    doc.setFillColor(248, 250, 252) // Slate-50
-    doc.roundedRect(backX, backY, badgeWidth, 12, 3, 3, 'F')
-    // Cover bottom radius of header
-    doc.rect(backX, backY + 6, badgeWidth, 6, 'F')
+    // QR Code Area
+    const qrSize = 45
+    const qrY = backY + (badgeHeight / 2) - (qrSize / 2) - 5
+
+    doc.addImage(data.qrCodeDataUrl, 'PNG', centerX - (qrSize / 2), qrY, qrSize, qrSize)
+
+    // Instructions
+    doc.setFontSize(10)
+    doc.setTextColor(15, 23, 42)
+    doc.setFont('helvetica', 'bold')
+    doc.text('ACESSO SEGURO', centerX, backY + 15, { align: 'center' })
 
     doc.setFontSize(8)
-    doc.setTextColor(71, 85, 105) // Slate-600
-    doc.setFont('helvetica', 'bold')
-    doc.text('ACESSO SEGURO', centerX, backY + 8, { align: 'center' })
-
-    // QR Code
-    const qrSize = 42
-    doc.addImage(data.qrCodeDataUrl, 'PNG', centerX - (qrSize / 2), backY + (badgeHeight / 2) - (qrSize / 2) + 2, qrSize, qrSize)
-
-    // Bottom Instruction
-    doc.setFontSize(7)
-    doc.setTextColor(148, 163, 184) // Slate-400
+    doc.setTextColor(100, 116, 139)
     doc.setFont('helvetica', 'normal')
-    doc.text('Aproxime este código do leitor', centerX, backY + badgeHeight - 12, { align: 'center' })
-    doc.text('na portaria para liberar sua entrada.', centerX, backY + badgeHeight - 8, { align: 'center' })
+    doc.text('Aproxime o QR Code do leitor', centerX, backY + badgeHeight - 20, { align: 'center' })
+    doc.text('na portaria.', centerX, backY + badgeHeight - 16, { align: 'center' })
 
     // Cut Lines (Dotted)
     doc.setDrawColor(200, 200, 200)
+    doc.setLineWidth(0.1)
     doc.setLineDashPattern([2, 2], 0)
-    doc.rect(frontX - 2, frontY - 2, badgeWidth + 4, badgeHeight + 4)
-    doc.rect(backX - 2, backY - 2, badgeWidth + 4, badgeHeight + 4)
+    doc.rect(frontX - 1, frontY - 1, badgeWidth + 2, badgeHeight + 2)
+    doc.rect(backX - 1, backY - 1, badgeWidth + 2, badgeHeight + 2)
     doc.setLineDashPattern([], 0)
 
-    // Metadata
-    doc.setFontSize(8)
-    doc.setTextColor(150, 150, 150)
-    doc.text('Portaria SaaS - Gerado em ' + new Date().toLocaleDateString(), 10, pageHeight - 10)
+    // Footer Metadata
+    doc.setFontSize(6)
+    doc.setTextColor(180, 180, 180)
+    doc.text(`Gerado em ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()} - Portaria SaaS`, 10, pageHeight - 5)
 
     doc.save(`Cracha-${data.nome.replace(/\s+/g, '_')}.pdf`)
 }
