@@ -973,6 +973,18 @@ class $VisitantesTable extends Visitantes
     requiredDuringInsert: false,
     defaultValue: const Constant('ativo'),
   );
+  static const VerificationMeta _situacaoMeta = const VerificationMeta(
+    'situacao',
+  );
+  @override
+  late final GeneratedColumn<String> situacao = GeneratedColumn<String>(
+    'situacao',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('FORA'),
+  );
   static const VerificationMeta _syncStatusMeta = const VerificationMeta(
     'syncStatus',
   );
@@ -1028,6 +1040,7 @@ class $VisitantesTable extends Visitantes
     documento,
     fotoUrl,
     status,
+    situacao,
     syncStatus,
     createdAt,
     updatedAt,
@@ -1102,6 +1115,12 @@ class $VisitantesTable extends Visitantes
         status.isAcceptableOrUnknown(data['status']!, _statusMeta),
       );
     }
+    if (data.containsKey('situacao')) {
+      context.handle(
+        _situacaoMeta,
+        situacao.isAcceptableOrUnknown(data['situacao']!, _situacaoMeta),
+      );
+    }
     if (data.containsKey('sync_status')) {
       context.handle(
         _syncStatusMeta,
@@ -1174,6 +1193,10 @@ class $VisitantesTable extends Visitantes
         DriftSqlType.string,
         data['${effectivePrefix}status'],
       )!,
+      situacao: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}situacao'],
+      )!,
       syncStatus: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}sync_status'],
@@ -1208,6 +1231,7 @@ class Visitante extends DataClass implements Insertable<Visitante> {
   final String? documento;
   final String? fotoUrl;
   final String status;
+  final String situacao;
   final int syncStatus;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -1221,6 +1245,7 @@ class Visitante extends DataClass implements Insertable<Visitante> {
     this.documento,
     this.fotoUrl,
     required this.status,
+    required this.situacao,
     required this.syncStatus,
     required this.createdAt,
     required this.updatedAt,
@@ -1245,6 +1270,7 @@ class Visitante extends DataClass implements Insertable<Visitante> {
       map['foto_url'] = Variable<String>(fotoUrl);
     }
     map['status'] = Variable<String>(status);
+    map['situacao'] = Variable<String>(situacao);
     map['sync_status'] = Variable<int>(syncStatus);
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
@@ -1272,6 +1298,7 @@ class Visitante extends DataClass implements Insertable<Visitante> {
           ? const Value.absent()
           : Value(fotoUrl),
       status: Value(status),
+      situacao: Value(situacao),
       syncStatus: Value(syncStatus),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
@@ -1295,6 +1322,7 @@ class Visitante extends DataClass implements Insertable<Visitante> {
       documento: serializer.fromJson<String?>(json['documento']),
       fotoUrl: serializer.fromJson<String?>(json['fotoUrl']),
       status: serializer.fromJson<String>(json['status']),
+      situacao: serializer.fromJson<String>(json['situacao']),
       syncStatus: serializer.fromJson<int>(json['syncStatus']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
@@ -1313,6 +1341,7 @@ class Visitante extends DataClass implements Insertable<Visitante> {
       'documento': serializer.toJson<String?>(documento),
       'fotoUrl': serializer.toJson<String?>(fotoUrl),
       'status': serializer.toJson<String>(status),
+      'situacao': serializer.toJson<String>(situacao),
       'syncStatus': serializer.toJson<int>(syncStatus),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
@@ -1329,6 +1358,7 @@ class Visitante extends DataClass implements Insertable<Visitante> {
     Value<String?> documento = const Value.absent(),
     Value<String?> fotoUrl = const Value.absent(),
     String? status,
+    String? situacao,
     int? syncStatus,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -1344,6 +1374,7 @@ class Visitante extends DataClass implements Insertable<Visitante> {
     documento: documento.present ? documento.value : this.documento,
     fotoUrl: fotoUrl.present ? fotoUrl.value : this.fotoUrl,
     status: status ?? this.status,
+    situacao: situacao ?? this.situacao,
     syncStatus: syncStatus ?? this.syncStatus,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
@@ -1363,6 +1394,7 @@ class Visitante extends DataClass implements Insertable<Visitante> {
       documento: data.documento.present ? data.documento.value : this.documento,
       fotoUrl: data.fotoUrl.present ? data.fotoUrl.value : this.fotoUrl,
       status: data.status.present ? data.status.value : this.status,
+      situacao: data.situacao.present ? data.situacao.value : this.situacao,
       syncStatus: data.syncStatus.present
           ? data.syncStatus.value
           : this.syncStatus,
@@ -1385,6 +1417,7 @@ class Visitante extends DataClass implements Insertable<Visitante> {
           ..write('documento: $documento, ')
           ..write('fotoUrl: $fotoUrl, ')
           ..write('status: $status, ')
+          ..write('situacao: $situacao, ')
           ..write('syncStatus: $syncStatus, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
@@ -1403,6 +1436,7 @@ class Visitante extends DataClass implements Insertable<Visitante> {
     documento,
     fotoUrl,
     status,
+    situacao,
     syncStatus,
     createdAt,
     updatedAt,
@@ -1420,6 +1454,7 @@ class Visitante extends DataClass implements Insertable<Visitante> {
           other.documento == this.documento &&
           other.fotoUrl == this.fotoUrl &&
           other.status == this.status &&
+          other.situacao == this.situacao &&
           other.syncStatus == this.syncStatus &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt &&
@@ -1435,6 +1470,7 @@ class VisitantesCompanion extends UpdateCompanion<Visitante> {
   final Value<String?> documento;
   final Value<String?> fotoUrl;
   final Value<String> status;
+  final Value<String> situacao;
   final Value<int> syncStatus;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
@@ -1449,6 +1485,7 @@ class VisitantesCompanion extends UpdateCompanion<Visitante> {
     this.documento = const Value.absent(),
     this.fotoUrl = const Value.absent(),
     this.status = const Value.absent(),
+    this.situacao = const Value.absent(),
     this.syncStatus = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
@@ -1464,6 +1501,7 @@ class VisitantesCompanion extends UpdateCompanion<Visitante> {
     this.documento = const Value.absent(),
     this.fotoUrl = const Value.absent(),
     this.status = const Value.absent(),
+    this.situacao = const Value.absent(),
     this.syncStatus = const Value.absent(),
     required DateTime createdAt,
     required DateTime updatedAt,
@@ -1483,6 +1521,7 @@ class VisitantesCompanion extends UpdateCompanion<Visitante> {
     Expression<String>? documento,
     Expression<String>? fotoUrl,
     Expression<String>? status,
+    Expression<String>? situacao,
     Expression<int>? syncStatus,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
@@ -1498,6 +1537,7 @@ class VisitantesCompanion extends UpdateCompanion<Visitante> {
       if (documento != null) 'documento': documento,
       if (fotoUrl != null) 'foto_url': fotoUrl,
       if (status != null) 'status': status,
+      if (situacao != null) 'situacao': situacao,
       if (syncStatus != null) 'sync_status': syncStatus,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
@@ -1515,6 +1555,7 @@ class VisitantesCompanion extends UpdateCompanion<Visitante> {
     Value<String?>? documento,
     Value<String?>? fotoUrl,
     Value<String>? status,
+    Value<String>? situacao,
     Value<int>? syncStatus,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
@@ -1530,6 +1571,7 @@ class VisitantesCompanion extends UpdateCompanion<Visitante> {
       documento: documento ?? this.documento,
       fotoUrl: fotoUrl ?? this.fotoUrl,
       status: status ?? this.status,
+      situacao: situacao ?? this.situacao,
       syncStatus: syncStatus ?? this.syncStatus,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
@@ -1565,6 +1607,9 @@ class VisitantesCompanion extends UpdateCompanion<Visitante> {
     if (status.present) {
       map['status'] = Variable<String>(status.value);
     }
+    if (situacao.present) {
+      map['situacao'] = Variable<String>(situacao.value);
+    }
     if (syncStatus.present) {
       map['sync_status'] = Variable<int>(syncStatus.value);
     }
@@ -1594,6 +1639,7 @@ class VisitantesCompanion extends UpdateCompanion<Visitante> {
           ..write('documento: $documento, ')
           ..write('fotoUrl: $fotoUrl, ')
           ..write('status: $status, ')
+          ..write('situacao: $situacao, ')
           ..write('syncStatus: $syncStatus, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
@@ -3348,6 +3394,7 @@ typedef $$VisitantesTableCreateCompanionBuilder =
       Value<String?> documento,
       Value<String?> fotoUrl,
       Value<String> status,
+      Value<String> situacao,
       Value<int> syncStatus,
       required DateTime createdAt,
       required DateTime updatedAt,
@@ -3364,6 +3411,7 @@ typedef $$VisitantesTableUpdateCompanionBuilder =
       Value<String?> documento,
       Value<String?> fotoUrl,
       Value<String> status,
+      Value<String> situacao,
       Value<int> syncStatus,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
@@ -3471,6 +3519,11 @@ class $$VisitantesTableFilterComposer
 
   ColumnFilters<String> get status => $composableBuilder(
     column: $table.status,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get situacao => $composableBuilder(
+    column: $table.situacao,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -3605,6 +3658,11 @@ class $$VisitantesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get situacao => $composableBuilder(
+    column: $table.situacao,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<int> get syncStatus => $composableBuilder(
     column: $table.syncStatus,
     builder: (column) => ColumnOrderings(column),
@@ -3700,6 +3758,9 @@ class $$VisitantesTableAnnotationComposer
 
   GeneratedColumn<String> get status =>
       $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumn<String> get situacao =>
+      $composableBuilder(column: $table.situacao, builder: (column) => column);
 
   GeneratedColumn<int> get syncStatus => $composableBuilder(
     column: $table.syncStatus,
@@ -3829,6 +3890,7 @@ class $$VisitantesTableTableManager
                 Value<String?> documento = const Value.absent(),
                 Value<String?> fotoUrl = const Value.absent(),
                 Value<String> status = const Value.absent(),
+                Value<String> situacao = const Value.absent(),
                 Value<int> syncStatus = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
@@ -3843,6 +3905,7 @@ class $$VisitantesTableTableManager
                 documento: documento,
                 fotoUrl: fotoUrl,
                 status: status,
+                situacao: situacao,
                 syncStatus: syncStatus,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
@@ -3859,6 +3922,7 @@ class $$VisitantesTableTableManager
                 Value<String?> documento = const Value.absent(),
                 Value<String?> fotoUrl = const Value.absent(),
                 Value<String> status = const Value.absent(),
+                Value<String> situacao = const Value.absent(),
                 Value<int> syncStatus = const Value.absent(),
                 required DateTime createdAt,
                 required DateTime updatedAt,
@@ -3873,6 +3937,7 @@ class $$VisitantesTableTableManager
                 documento: documento,
                 fotoUrl: fotoUrl,
                 status: status,
+                situacao: situacao,
                 syncStatus: syncStatus,
                 createdAt: createdAt,
                 updatedAt: updatedAt,

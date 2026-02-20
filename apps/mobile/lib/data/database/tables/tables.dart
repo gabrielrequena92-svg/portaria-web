@@ -35,6 +35,7 @@ class Visitantes extends Table {
   TextColumn get documento => text().nullable()();
   TextColumn get fotoUrl => text().nullable()();
   TextColumn get status => text().withDefault(const Constant('ativo'))(); 
+  TextColumn get situacao => text().withDefault(const Constant('FORA'))(); 
 
   IntColumn get syncStatus => integer().withDefault(const Constant(0))();
   DateTimeColumn get createdAt => dateTime()();

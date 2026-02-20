@@ -42,7 +42,19 @@ class RegistroRepositoryImpl implements RegistroRepository {
   }
 
   @override
-  Future<void> syncRegistros() async {
+  Future<void> syncRegistros(String condominioId) async {
+    // 1. Download Recent Records (Sync Down)
+    try {
+      final recent = await _remote.fetchRecentRegistros(condominioId);
+      if (recent.isNotEmpty) {
+        await _local.upsertRegistros(recent);
+      }
+    } catch (e) {
+      print('Error downloading recent records: $e');
+      // Continue to upload even if download fails
+    }
+
+    // 2. Upload Pending Records (Sync Up)
     final unsynced = await _local.getUnsyncedRegistros();
     for (var r in unsynced) {
       try {

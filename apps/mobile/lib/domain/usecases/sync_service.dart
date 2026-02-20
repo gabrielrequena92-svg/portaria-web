@@ -19,7 +19,7 @@ class SyncService {
   Future<void> syncAll(String condominioId) async {
     try {
       // 1. Upload Logs (Priority: ensure cloud has latest movements)
-      await _registroRepository.syncRegistros();
+      await _registroRepository.syncRegistros(condominioId);
       
       // 2. Upload New Visitors (if any)
       await _visitanteRepository.syncVisitantes(condominioId);

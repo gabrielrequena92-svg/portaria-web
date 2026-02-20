@@ -56,6 +56,26 @@ class RegistroModel extends Registro {
     };
   }
 
+  // From JSON (Supabase)
+  factory RegistroModel.fromJson(Map<String, dynamic> json) {
+    return RegistroModel(
+      id: json['id'],
+      condominioId: json['condominio_id'],
+      visitanteId: json['visitante_id'],
+      empresaId: json['empresa_id'],
+      tipo: json['tipo'],
+      dataRegistro: DateTime.parse(json['data_registro']).toLocal(),
+      placaVeiculo: json['placa_veiculo'],
+      fotoVeiculoUrl: json['foto_veiculo_url'],
+      visitanteNomeSnapshot: json['visitante_nome_snapshot'] ?? '',
+      visitanteCpfSnapshot: json['visitante_cpf_snapshot'],
+      visitorPhotoSnapshot: json['visitor_photo_snapshot'],
+      empresaNomeSnapshot: json['empresa_nome_snapshot'],
+      statusSnapshot: json['status_snapshot'],
+      syncStatus: json['sync_status'] ?? 0, // Default to 0 (synced) if coming from server
+    );
+  }
+
   // From Drift Class
   factory RegistroModel.fromDrift(db.Registro driftObject) {
     return RegistroModel(

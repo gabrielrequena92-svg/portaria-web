@@ -4,6 +4,7 @@ import '../../../domain/repositories/visitante_repository.dart';
 import '../datasources/local/local_datasource.dart';
 import '../datasources/remote/supabase_datasource.dart';
 import '../models/visitante_model.dart';
+import '../../../core/utils/brazil_time.dart';
 
 class VisitanteRepositoryImpl implements VisitanteRepository {
   final LocalDatasource _local;
@@ -28,6 +29,7 @@ class VisitanteRepositoryImpl implements VisitanteRepository {
       documento: model.documento,
       fotoUrl: model.fotoUrl,
       status: model.status,
+      situacao: model.situacao,
       syncStatus: model.syncStatus,
     ) : null;
   }
@@ -46,6 +48,7 @@ class VisitanteRepositoryImpl implements VisitanteRepository {
       documento: visitante.documento,
       fotoUrl: visitante.fotoUrl,
       status: visitante.status,
+      situacao: visitante.situacao,
       syncStatus: 1, // 1 = Pending Insert/Update
     );
     
@@ -69,7 +72,29 @@ class VisitanteRepositoryImpl implements VisitanteRepository {
     // 2. Pull Remote Changes
     try {
       final remote = await _remote.fetchVisitantes(condominioId: condominioId);
+      // We use a custom upsert to avoid overwriting "status" if we just calculated it from logs
+      // But for now, let's assume the log sync is the source of truth for status.
+      // If we blindly upsert, we might revert status if the remote 'visitantes' table is outdated.
+      // Ideally, the remote 'visitantes' table should be updated when a log is inserted (via database function/trigger).
+      // Since we don't have backend code control here, we will rely on client-side calculation.
+      // Strategy: Upsert visitors -> Re-run status calculation from logs to ensure consistency.
       await _local.upsertVisitantes(remote);
+      
+      // Re-calculate status from local logs to ensure they are correct even after visitor sync
+      // This is expensive but safer for consistency without backend triggers
+      final allVisitors = await _local.getAllVisitantes();
+      for(var vModel in allVisitors) {
+         // Use the general 'Last Record' method to avoid Timezone/Day boundary issues with 'Hoje'
+         final lastLog = await _local.getUltimoRegistroVisitante(vModel.id); 
+         if (lastLog != null) {
+            final correctStatus = lastLog.tipo.toLowerCase() == 'entrada' ? 'DENTRO' : 'FORA';
+             // Only update if situacao implies a change
+            if (vModel.situacao != correctStatus) {
+               await _local.saveVisitante(vModel.copyWith(situacao: correctStatus, syncStatus: 0));
+            }
+         }
+      }
+
     } catch (e) {
        print('Error pulling visitantes: $e');
     }

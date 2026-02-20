@@ -45,7 +45,7 @@ export default async function LandingPage() {
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-50 border border-emerald-100 text-emerald-700 text-xs font-black tracking-widest uppercase animate-bounce shadow-lg">
                 <span className="h-2 w-2 rounded-full bg-emerald-500 animate-ping" />
                 <span className="h-2 w-2 rounded-full bg-emerald-500 absolute" />
-                Nova Versão 1.0 Disponível
+                Nova Versão 2.0 Disponível
               </div>
 
               <h1 className="text-6xl md:text-8xl font-black tracking-tighter text-slate-900 leading-[0.9]">
@@ -75,12 +75,12 @@ export default async function LandingPage() {
               {/* Dashboard Preview Image */}
               <div className="pt-16 relative">
                 <div className="relative mx-auto border-gray-800 dark:border-gray-800 bg-gray-800 border-[8px] rounded-t-xl h-[172px] max-w-[301px] md:h-[294px] md:max-w-[512px]">
-                    <div className="rounded-lg overflow-hidden h-[156px] md:h-[278px] bg-white dark:bg-gray-800">
-                        <img src="/dashboard-preview.png" className="dark:hidden h-full w-full rounded-xl" alt="Dashboard Preview" />
-                    </div>
+                  <div className="rounded-lg overflow-hidden h-[156px] md:h-[278px] bg-white dark:bg-gray-800">
+                    <img src="/dashboard-preview.png" className="dark:hidden h-full w-full rounded-xl" alt="Dashboard Preview" />
+                  </div>
                 </div>
                 <div className="relative mx-auto bg-gray-900 dark:bg-gray-700 rounded-b-xl rounded-t-sm h-[17px] max-w-[351px] md:h-[21px] md:max-w-[597px]">
-                    <div className="absolute left-1/2 top-0 -translate-x-1/2 rounded-b-xl w-[56px] h-[5px] md:w-[96px] md:h-[8px] bg-gray-800"></div>
+                  <div className="absolute left-1/2 top-0 -translate-x-1/2 rounded-b-xl w-[56px] h-[5px] md:w-[96px] md:h-[8px] bg-gray-800"></div>
                 </div>
               </div>
 
@@ -333,7 +333,7 @@ export default async function LandingPage() {
 
           <div className="pt-8 border-t border-slate-800 flex flex-col md:flex-row items-center justify-between gap-4">
             <p className="text-slate-500 text-sm">
-              © 2026 Portaria SaaS. Todos os direitos reservados • v1.0.0
+              © 2026 Portaria SaaS. Todos os direitos reservados • v2.0.0
             </p>
             <p className="text-slate-400 text-sm font-bold">
               Desenvolvido por: <span className="text-emerald-400">Gabriel B. Requena</span>

@@ -13,6 +13,7 @@ class VisitanteModel extends Visitante {
     String? documento,
     String? fotoUrl,
     required String status,
+    required String situacao,
     required int syncStatus,
   }) : super(
           id: id,
@@ -23,6 +24,7 @@ class VisitanteModel extends Visitante {
           documento: documento,
           fotoUrl: fotoUrl,
           status: status,
+          situacao: situacao,
           syncStatus: syncStatus,
         );
 
@@ -36,6 +38,7 @@ class VisitanteModel extends Visitante {
       documento: json['cpf'], 
       fotoUrl: json['foto_url'],
       status: json['status'],
+      situacao: json['situacao'] ?? 'FORA',
       syncStatus: 0,
     );
   }
@@ -50,6 +53,7 @@ class VisitanteModel extends Visitante {
       'cpf': documento,
       'foto_url': fotoUrl,
       'status': status,
+      'situacao': situacao,
     };
   }
 
@@ -63,6 +67,7 @@ class VisitanteModel extends Visitante {
       documento: driftObject.documento,
       fotoUrl: driftObject.fotoUrl,
       status: driftObject.status,
+      situacao: driftObject.situacao,
       syncStatus: driftObject.syncStatus,
     );
   }
@@ -77,6 +82,7 @@ class VisitanteModel extends Visitante {
       documento: Value(documento),
       fotoUrl: Value(fotoUrl),
       status: Value(status),
+      situacao: Value(situacao),
       syncStatus: Value(syncStatus),
       updatedAt: Value(BrazilTime.now()),
       createdAt: Value(BrazilTime.now()),
@@ -92,6 +98,7 @@ class VisitanteModel extends Visitante {
     String? documento,
     String? fotoUrl,
     String? status,
+    String? situacao,
     int? syncStatus,
   }) {
     return VisitanteModel(
@@ -103,6 +110,7 @@ class VisitanteModel extends Visitante {
       documento: documento ?? this.documento,
       fotoUrl: fotoUrl ?? this.fotoUrl,
       status: status ?? this.status,
+      situacao: situacao ?? this.situacao,
       syncStatus: syncStatus ?? this.syncStatus,
     );
   }

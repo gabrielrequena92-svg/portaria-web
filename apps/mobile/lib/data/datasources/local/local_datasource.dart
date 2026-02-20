@@ -75,6 +75,34 @@ class LocalDatasource {
     await _db.into(_db.registros).insert(registro.toDrift());
   }
 
+  Future<void> upsertRegistros(List<RegistroModel> registros) async {
+    await _db.batch((batch) {
+      batch.insertAll(
+        _db.registros,
+        registros.map((e) => e.toDrift()).toList(),
+        mode: InsertMode.insertOrReplace,
+      );
+    });
+
+    // CRITICAL: Update Visitante Status based on these new logs
+    // We group by visitor and find their latest log to determine current status
+    for (var r in registros) {
+      // Find latest log for this visitor (including the one we just inserted or others)
+      final latest = await getUltimoRegistroVisitante(r.visitanteId);
+      if (latest != null) {
+        final newStatus = latest.tipo.toLowerCase() == 'entrada' ? 'DENTRO' : 'FORA';
+        
+        // Update Visitante Table
+        await (_db.update(_db.visitantes)..where((tbl) => tbl.id.equals(r.visitanteId))).write(
+          VisitantesCompanion(
+            situacao: Value(newStatus),
+            lastSyncedAt: Value(BrazilTime.now()), // Mark as 'touched'
+          ),
+        );
+      }
+    }
+  }
+
   Future<List<RegistroModel>> getUnsyncedRegistros() async {
     final query = _db.select(_db.registros)..where((tbl) => tbl.syncStatus.isNotValue(0)); 
     final results = await query.get();

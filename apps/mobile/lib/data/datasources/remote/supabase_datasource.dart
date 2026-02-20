@@ -44,8 +44,27 @@ class SupabaseDatasource {
   }
 
   // --- Registros (Logs) ---
+  Future<List<RegistroModel>> fetchRecentRegistros(String condominioId) async {
+    final yesterday = DateTime.now().subtract(const Duration(hours: 24)).toIso8601String();
+    
+    final response = await _client
+        .from('registros')
+        .select()
+        .eq('condominio_id', condominioId)
+        .gte('data_registro', yesterday)
+        .order('data_registro', ascending: false);
+
+    return (response as List).map((e) => RegistroModel.fromJson(e)).toList();
+  }
   Future<void> uploadRegistro(RegistroModel registro) async {
+    try {
+      print('💬 SupabaseDatasource.uploadRegistro: Inserting record ${registro.id}');
       await _client.from('registros').insert(registro.toJson());
+      print('✅ SupabaseDatasource.uploadRegistro: Success');
+    } catch (e) {
+      print('❌ SupabaseDatasource.uploadRegistro: Error: $e');
+      rethrow;
+    }
   }
 
   Future<String?> uploadFoto(String path, String fileName) async {

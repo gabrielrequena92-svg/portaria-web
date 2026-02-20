@@ -39,7 +39,7 @@ class _VisitanteCardState extends ConsumerState<VisitanteCard> {
   }
 
   Future<void> _loadStatus() async {
-    final registro = await widget.viewModel.getUltimoRegistroHoje(widget.visitante.id);
+    final registro = await widget.viewModel.getUltimoRegistroVisitante(widget.visitante.id);
     if (mounted) {
       setState(() {
         _ultimoRegistro = registro;
@@ -50,7 +50,7 @@ class _VisitanteCardState extends ConsumerState<VisitanteCard> {
 
   bool get _isInside {
     if (_ultimoRegistro == null) return false;
-    return _ultimoRegistro!.tipo == 'entrada';
+    return _ultimoRegistro!.tipo.toLowerCase() == 'entrada';
   }
 
   Color get _statusColor {

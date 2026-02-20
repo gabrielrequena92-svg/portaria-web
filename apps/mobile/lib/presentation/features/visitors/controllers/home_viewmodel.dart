@@ -134,13 +134,13 @@ class HomeViewModel extends StateNotifier<HomeState> {
     }
   }
 
-  // Get last registro of visitor TODAY (for entry/exit blocking logic)
-  Future<Registro?> getUltimoRegistroHoje(String visitanteId) async {
+  // Get last registro of visitor overall (for presence logic)
+  Future<Registro?> getUltimoRegistroVisitante(String visitanteId) async {
     try {
       final localDatasource = ref.read(localDatasourceProvider);
-      return await localDatasource.getUltimoRegistroHoje(visitanteId);
+      return await localDatasource.getUltimoRegistroVisitante(visitanteId);
     } catch (e) {
-      print('Error getting ultimo registro hoje: $e');
+      print('Error getting ultimo registro: $e');
       return null;
     }
   }

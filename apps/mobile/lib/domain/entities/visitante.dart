@@ -7,6 +7,7 @@ class Visitante {
   final String? documento;
   final String? fotoUrl;
   final String status;
+  final String situacao;
   final int syncStatus;
 
   Visitante({
@@ -18,6 +19,7 @@ class Visitante {
     this.documento,
     this.fotoUrl,
     required this.status,
+    required this.situacao,
     required this.syncStatus,
   });
 }

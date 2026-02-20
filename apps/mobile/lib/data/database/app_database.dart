@@ -16,7 +16,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 4; // Incremented version to add statusSnapshot
+  int get schemaVersion => 5; // Added situacao to Visitantes
   
   @override
   MigrationStrategy get migration {
@@ -56,6 +56,16 @@ class AppDatabase extends _$AppDatabase {
             }
           }
           await addSafely(registros.statusSnapshot);
+        } else if (from < 5) {
+           Future<void> addVisitanteSafely(GeneratedColumn col) async {
+            try {
+              await m.addColumn(visitantes, col);
+            } catch (e) {
+              if (e.toString().contains('duplicate column name')) return;
+              rethrow;
+            }
+          }
+          await addVisitanteSafely(visitantes.situacao);
         }
       },
     );
