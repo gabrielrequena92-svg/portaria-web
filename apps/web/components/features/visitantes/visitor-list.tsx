@@ -32,6 +32,7 @@ interface Visitor {
     empresa?: { nome: string } | null
     empresa_id?: string | null
     tipo_visitante?: { nome: string } | null
+    tipo_visitante_id?: string | null
     condominio_id: string
     condominio?: { id: string }
 }

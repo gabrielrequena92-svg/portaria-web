@@ -34,6 +34,7 @@ interface VisitorDialogProps {
         foto_url: string | null
         status: 'ativo' | 'bloqueado' | 'inativo'
         empresa_id?: string | null
+        tipo_visitante_id?: string | null
     }
     empresas: { id: string; nome: string }[]
     tiposVisitantes: { id: string; nome: string }[]
@@ -269,7 +270,7 @@ export function VisitorDialog({ visitor, empresas, tiposVisitantes, condominioId
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="grid gap-2">
                                     <Label htmlFor="tipo_visitante_id">Categoria</Label>
-                                    <Select name="tipo_visitante_id" defaultValue={visitor?.id ? 'existing' : tiposVisitantes[0]?.id}>
+                                    <Select name="tipo_visitante_id" defaultValue={visitor?.tipo_visitante_id || tiposVisitantes[0]?.id}>
                                         <SelectTrigger>
                                             <SelectValue placeholder="Selecione" />
                                         </SelectTrigger>
