@@ -18,17 +18,13 @@ export default async function DashboardLayout({
     }
 
     // Buscar perfil para verificar role
-    const { data: profile, error: profileError } = await supabase
+    const { data: profile } = await supabase
         .from('profiles')
         .select('role')
         .eq('id', user.id)
         .single()
 
-    if (profileError) {
-        console.error('Erro ao buscar perfil:', profileError)
-    }
-
-    const isAdmin = profile?.role === 'admin'
+    const isAdmin = profile?.role?.toLowerCase() === 'admin'
 
     // Fetch alerts (blocked visitors)
     const { data: recentAlerts } = await supabase
