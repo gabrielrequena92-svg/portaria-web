@@ -47,6 +47,12 @@ class LocalDatasource {
     return results.map((e) => VisitanteModel.fromDrift(e)).toList();
   }
 
+  Future<int> getPendingVisitantesCount() async {
+    final query = _db.select(_db.visitantes)..where((tbl) => tbl.syncStatus.isNotValue(0));
+    final results = await query.get();
+    return results.length;
+  }
+
   Future<void> upsertVisitantes(List<VisitanteModel> visitantes) async {
     await _db.batch((batch) {
       batch.insertAll(
@@ -107,6 +113,12 @@ class LocalDatasource {
     final query = _db.select(_db.registros)..where((tbl) => tbl.syncStatus.isNotValue(0)); 
     final results = await query.get();
     return results.map((e) => RegistroModel.fromDrift(e)).toList();
+  }
+  
+  Future<int> getPendingRegistrosCount() async {
+    final query = _db.select(_db.registros)..where((tbl) => tbl.syncStatus.isNotValue(0));
+    final results = await query.get();
+    return results.length;
   }
   
   Future<void> markRegistroAsSynced(String id) async {

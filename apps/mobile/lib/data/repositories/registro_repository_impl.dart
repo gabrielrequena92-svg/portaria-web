@@ -76,4 +76,9 @@ class RegistroRepositoryImpl implements RegistroRepository {
       }
     }
   }
+
+  @override
+  Future<int> getPendingSyncCount() async {
+    return await _local.getPendingRegistrosCount();
+  }
 }

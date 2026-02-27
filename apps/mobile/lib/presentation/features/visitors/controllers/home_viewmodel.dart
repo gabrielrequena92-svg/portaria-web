@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../sync/controllers/sync_viewmodel.dart';
 import 'package:uuid/uuid.dart';
 import '../../../../core/config/providers.dart';
 import '../../../../core/utils/brazil_time.dart';
@@ -114,24 +115,12 @@ class HomeViewModel extends StateNotifier<HomeState> {
   }
 
   Future<void> syncData() async {
-    if (state.isSyncing) return;
+    // Delegates to the universal SyncViewModel
+    await ref.read(syncViewModelProvider.notifier).syncData();
     
-    state = state.copyWith(isSyncing: true);
-    try {
-      final syncService = ref.read(syncServiceProvider);
-      // TODO: Get real condominioId from Auth/Config. Hardcoded for MVP v1.
-      const condominioId = 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'; 
-      
-      await syncService.syncAll(condominioId);
-      
-      // Reload local data after sync
-      await loadEmpresas();
-      await loadVisitantes(); // This might clear search, which is fine
-    } catch (e) {
-      state = state.copyWith(errorMessage: 'Erro ao sincronizar: $e');
-    } finally {
-      state = state.copyWith(isSyncing: false);
-    }
+    // Reload local data after sync
+    await loadEmpresas();
+    await loadVisitantes(); 
   }
 
   // Get last registro of visitor overall (for presence logic)
@@ -178,6 +167,9 @@ class HomeViewModel extends StateNotifier<HomeState> {
 
       await _registroRepository.saveRegistro(registro);
       print('✅ Registro saved to local DB');
+      
+      // Update universal sync state instantly for snappy UI
+      ref.read(syncViewModelProvider.notifier).checkPendingCounts();
       
       print('🔄 Starting syncData...');
       // Fire and forget sync to not block UI feedback, or await if critical.

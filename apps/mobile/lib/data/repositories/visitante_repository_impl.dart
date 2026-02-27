@@ -99,4 +99,9 @@ class VisitanteRepositoryImpl implements VisitanteRepository {
        print('Error pulling visitantes: $e');
     }
   }
+
+  @override
+  Future<int> getPendingSyncCount() async {
+    return await _local.getPendingVisitantesCount();
+  }
 }

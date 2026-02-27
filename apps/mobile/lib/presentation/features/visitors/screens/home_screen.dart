@@ -5,6 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../controllers/home_viewmodel.dart';
 import '../screens/scanner_screen.dart';
 import '../widgets/visitante_card.dart';
+import '../../sync/widgets/sync_status_footer.dart';
+import '../../sync/controllers/sync_viewmodel.dart';
 import '../../../../domain/entities/visitante.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
@@ -31,27 +33,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         ),
         backgroundColor: Colors.white,
         foregroundColor: const Color(0xFF022C22),
-        actions: [
-          IconButton(
-            onPressed: state.isSyncing 
-                ? null 
-                : () async {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Sincronizando...')),
-                    );
-                    await viewModel.syncData();
-                  },
-            icon: state.isSyncing
-                ? const SizedBox(
-                    width: 20, 
-                    height: 20, 
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Icon(Icons.sync),
-            tooltip: 'Sincronizar',
-          ),
-          const SizedBox(width: 8),
-        ],
       ),
       body: Column(
         children: [
@@ -127,6 +108,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             },
                           ),
           ),
+          // --- SYNC STATUS FOOTER ---
+          const SyncStatusFooter(),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(

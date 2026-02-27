@@ -62,6 +62,7 @@ void main() {
         condominioId: 'c1',
         nome: 'John Doe',
         status: 'ativo',
+        situacao: 'FORA',
         syncStatus: 0,
       );
       when(() => mockVisitanteRepository.getVisitantes()).thenAnswer((_) async => [visitor]);
@@ -78,8 +79,8 @@ void main() {
 
      test('Search should filter visitors', () async {
       // Arrange
-      final v1 = Visitante(id: '1', condominioId: 'c1', nome: 'John Doe', status: 'ativo', syncStatus: 0);
-      final v2 = Visitante(id: '2', condominioId: 'c1', nome: 'Jane Smith', status: 'ativo', syncStatus: 0);
+      final v1 = Visitante(id: '1', condominioId: 'c1', nome: 'John Doe', status: 'ativo', situacao: 'DENTRO', syncStatus: 0);
+      final v2 = Visitante(id: '2', condominioId: 'c1', nome: 'Jane Smith', status: 'ativo', situacao: 'FORA', syncStatus: 0);
       
       when(() => mockVisitanteRepository.getVisitantes()).thenAnswer((_) async => [v1, v2]);
 
