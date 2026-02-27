@@ -110,7 +110,10 @@ export function DashboardLayoutClient({ children, isAdmin, userEmail, alerts = [
                 <NavItem href="/dashboard/relatorios" icon={FileText} label="Relatórios" />
 
                 {isAdmin && (
-                    <NavItem href="/dashboard/configuracoes" icon={Settings} label="Configurações" />
+                    <>
+                        <NavItem href="/dashboard/auditoria" icon={FileText} label="Auditoria" />
+                        <NavItem href="/dashboard/configuracoes" icon={Settings} label="Configurações" />
+                    </>
                 )}
             </nav>
 

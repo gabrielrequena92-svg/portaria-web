@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import Link from 'next/link'
 
 import { ExportPdfButton } from '@/components/export-pdf-button'
+import { ExportCsvButton } from '@/components/export-csv-button'
 import { RelatoriosFilter } from '@/components/relatorios-filter'
 import { formatDate, formatTime } from '@/lib/utils/date'
 
@@ -61,6 +62,7 @@ export default async function RelatoriosPage({
                 </div>
 
                 <div className="flex items-center gap-3">
+                    <ExportCsvButton data={registros || []} />
                     <ExportPdfButton data={registros || []} />
                     <RelatoriosFilter />
                 </div>
