@@ -99,7 +99,7 @@ export function VisitorDialog({ visitor, empresas, tiposVisitantes, condominioId
                     </Button>
                 </DialogTrigger>
             )}
-            <DialogContent className="sm:max-w-[500px]">
+            <DialogContent className="sm:max-w-[700px]">
                 <DialogHeader>
                     <DialogTitle>{visitor ? 'Editar Visitante' : 'Novo Visitante'}</DialogTitle>
                     <DialogDescription>

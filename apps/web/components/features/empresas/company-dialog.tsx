@@ -69,7 +69,7 @@ export function CompanyDialog({ company, open, onOpenChange }: CompanyDialogProp
                     </Button>
                 </DialogTrigger>
             )}
-            <DialogContent className="sm:max-w-[500px]">
+            <DialogContent className="sm:max-w-[700px]">
                 <DialogHeader>
                     <DialogTitle>{company ? 'Editar Empresa' : 'Nova Empresa'}</DialogTitle>
                     <DialogDescription>
