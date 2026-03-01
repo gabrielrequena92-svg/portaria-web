@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Smartphone, Globe, CheckCircle2, ArrowRight, Building2, Users, Lock, Zap, Clock, BarChart3, QrCode } from 'lucide-react'
 import Link from 'next/link'
+import { ParticlesBackground } from '@/components/ui/particles-background'
 
 export default async function LandingPage() {
   const supabase = await createClient()
@@ -23,11 +24,16 @@ export default async function LandingPage() {
             <Link href="#features" className="text-sm font-bold text-slate-600 hover:text-emerald-600 transition-colors">Funcionalidades</Link>
             <Link href="#how-it-works" className="text-sm font-bold text-slate-600 hover:text-emerald-600 transition-colors">Como Funciona</Link>
             <Link href="#stats" className="text-sm font-bold text-slate-600 hover:text-emerald-600 transition-colors">Benefícios</Link>
-            <Link href="/login">
-              <Button className="bg-slate-900 hover:bg-slate-800 text-white rounded-full px-8 font-bold transition-all hover:scale-105 active:scale-95 shadow-xl shadow-slate-200">
-                Acessar Sistema
-              </Button>
-            </Link>
+            <div className="flex items-center gap-4">
+              <Link href="/login" className="text-sm font-bold text-slate-600 hover:text-emerald-600 transition-colors">
+                Login
+              </Link>
+              <Link href="/cadastro">
+                <Button className="bg-slate-900 hover:bg-slate-800 text-white rounded-full px-8 font-bold transition-all hover:scale-105 shadow-xl shadow-slate-200">
+                  Começar Agora
+                </Button>
+              </Link>
+            </div>
           </nav>
         </div>
       </header>
@@ -35,17 +41,17 @@ export default async function LandingPage() {
       <main className="flex-1">
         {/* Hero Section with Gradient Background */}
         <section className="relative pt-40 pb-32 px-6 overflow-hidden">
-          {/* Animated Background Gradient */}
-          <div className="absolute inset-0 bg-gradient-to-br from-emerald-50 via-white to-teal-50 opacity-60" />
-          <div className="absolute top-20 right-10 w-96 h-96 bg-emerald-200 rounded-full blur-3xl opacity-20 animate-pulse" />
-          <div className="absolute bottom-20 left-10 w-96 h-96 bg-teal-200 rounded-full blur-3xl opacity-20 animate-pulse delay-1000" />
+          {/* Animated Background Gradients & Particles */}
+          <ParticlesBackground />
+          <div className="absolute top-20 right-10 w-[500px] h-[500px] bg-emerald-100 rounded-full blur-[120px] opacity-40 animate-pulse" />
+          <div className="absolute bottom-20 left-10 w-[500px] h-[500px] bg-teal-100 rounded-full blur-[120px] opacity-40 animate-pulse delay-1000" />
 
-          <div className="relative max-w-7xl mx-auto">
+          <div className="relative max-w-7xl mx-auto z-10">
             <div className="text-center space-y-10">
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-50 border border-emerald-100 text-emerald-700 text-xs font-black tracking-widest uppercase animate-bounce shadow-lg">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-600 text-xs font-black tracking-widest uppercase animate-bounce shadow-lg backdrop-blur-sm">
                 <span className="h-2 w-2 rounded-full bg-emerald-500 animate-ping" />
                 <span className="h-2 w-2 rounded-full bg-emerald-500 absolute" />
-                Nova Versão 2.0 Disponível
+                Nova Versão 2.1 Disponível
               </div>
 
               <h1 className="text-6xl md:text-8xl font-black tracking-tighter text-slate-900 leading-[0.9]">
@@ -61,26 +67,59 @@ export default async function LandingPage() {
               </p>
 
               <div className="flex flex-col sm:flex-row items-center justify-center gap-6 pt-4">
-                <Link href="/login">
-                  <Button size="lg" className="group h-16 px-10 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-2xl text-lg font-black shadow-2xl shadow-emerald-300 transition-all hover:-translate-y-1 hover:shadow-3xl">
+                <Link href="/cadastro">
+                  <Button size="lg" className="group h-16 px-10 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-2xl text-lg font-black shadow-2xl shadow-emerald-200 transition-all hover:-translate-y-1">
                     Começar Agora
                     <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
                   </Button>
                 </Link>
-                <Button size="lg" variant="outline" className="h-16 px-10 border-2 border-slate-300 rounded-2xl text-lg font-black hover:bg-slate-50 hover:border-emerald-600 hover:text-emerald-600 transition-all hover:scale-105">
-                  Ver Demonstração
-                </Button>
+                <Link href="/login">
+                  <Button size="lg" variant="outline" className="h-16 px-10 border-2 border-slate-200 bg-white/50 text-slate-700 rounded-2xl text-lg font-black hover:bg-slate-50 hover:border-slate-300 transition-all hover:scale-105 backdrop-blur-md">
+                    Acessar Dashboard
+                  </Button>
+                </Link>
               </div>
 
-              {/* Dashboard Preview Image */}
-              <div className="pt-16 relative">
-                <div className="relative mx-auto border-gray-800 dark:border-gray-800 bg-gray-800 border-[8px] rounded-t-xl h-[172px] max-w-[301px] md:h-[294px] md:max-w-[512px]">
-                  <div className="rounded-lg overflow-hidden h-[156px] md:h-[278px] bg-white dark:bg-gray-800">
-                    <img src="/dashboard-preview.png" className="dark:hidden h-full w-full rounded-xl" alt="Dashboard Preview" />
+              {/* Advanced Dashboard & Mobile Preview Image */}
+              <div className="pt-20 relative max-w-5xl mx-auto flex justify-center items-end">
+                {/* Desktop Mockup */}
+                <div className="relative z-10 w-full max-w-4xl mx-auto transform translate-x-8 md:translate-x-12">
+                  <div className="relative mx-auto border-slate-800 bg-slate-800 border-[8px] rounded-t-2xl shadow-2xl">
+                    <div className="rounded-lg overflow-hidden bg-slate-900">
+                      <img src="/dashboard-preview.png" className="w-full h-auto object-cover opacity-90 hover:opacity-100 transition-opacity" alt="Dashboard Web" />
+                    </div>
+                  </div>
+                  <div className="relative mx-auto bg-slate-900 rounded-b-2xl h-[24px] w-[105%] -left-[2.5%] shadow-2xl">
+                    <div className="absolute left-1/2 top-0 -translate-x-1/2 rounded-b-xl w-[120px] h-[6px] bg-slate-800"></div>
                   </div>
                 </div>
-                <div className="relative mx-auto bg-gray-900 dark:bg-gray-700 rounded-b-xl rounded-t-sm h-[17px] max-w-[351px] md:h-[21px] md:max-w-[597px]">
-                  <div className="absolute left-1/2 top-0 -translate-x-1/2 rounded-b-xl w-[56px] h-[5px] md:w-[96px] md:h-[8px] bg-gray-800"></div>
+
+                {/* Mobile Mockup (Overlapping) */}
+                <div className="absolute z-20 left-0 bottom-[-20px] md:bottom-[-40px] transform -rotate-6 hover:rotate-0 transition-transform duration-500">
+                  <div className="relative border-slate-800 bg-slate-900 border-[8px] rounded-[2.5rem] w-[180px] h-[360px] md:w-[220px] md:h-[440px] shadow-2xl overflow-hidden shadow-emerald-900/50">
+                    {/* Notch */}
+                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[40%] h-[24px] bg-slate-800 rounded-b-xl z-30"></div>
+                    {/* Mobile App Screen Mockup CSS */}
+                    <div className="absolute inset-0 bg-slate-50 flex flex-col">
+                      <div className="bg-emerald-600 h-24 p-4 text-white flex flex-col justify-end">
+                        <div className="text-xs opacity-70">Portaria SaaS</div>
+                        <div className="font-bold">Acessos Hoje</div>
+                      </div>
+                      <div className="p-4 space-y-3">
+                        <div className="h-16 bg-white rounded-xl shadow-sm border border-slate-100 p-3 flex items-center gap-3">
+                          <div className="h-10 w-10 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600"><CheckCircle2 className="w-5 h-5" /></div>
+                          <div><div className="text-xs font-bold text-slate-800">João Silva</div><div className="text-[10px] text-slate-500">Entrada 08:30</div></div>
+                        </div>
+                        <div className="h-16 bg-white rounded-xl shadow-sm border border-slate-100 p-3 flex items-center gap-3">
+                          <div className="h-10 w-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600"><QrCode className="w-5 h-5" /></div>
+                          <div><div className="text-xs font-bold text-slate-800">Sedex / Log</div><div className="text-[10px] text-slate-500">Aguardando</div></div>
+                        </div>
+                        <div className="h-12 bg-emerald-50 rounded-xl border border-emerald-100 mt-6 flex items-center justify-center">
+                          <span className="text-xs font-bold text-emerald-700">QR Scanner Ativo</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -295,9 +334,9 @@ export default async function LandingPage() {
               Junte-se a centenas de condomínios que já confiam no Portaria SaaS
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-6 pt-6">
-              <Link href="/login">
+              <Link href="/cadastro">
                 <Button size="lg" className="group h-16 px-12 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white rounded-2xl text-lg font-black shadow-2xl shadow-emerald-500/50 transition-all hover:scale-105">
-                  Começar Gratuitamente
+                  Começar Agora
                   <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </Link>

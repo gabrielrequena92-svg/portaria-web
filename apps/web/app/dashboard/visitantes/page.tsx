@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { VisitorList } from '@/components/features/visitantes/visitor-list'
 import { VisitorDialog } from '@/components/features/visitantes/visitor-dialog'
+import { calcularStatusConformidade } from '@/lib/utils/conformity'
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>
 
@@ -15,8 +16,8 @@ export default async function VisitantesPage(props: {
         .from('visitantes')
         .select(`
             *,
-            empresa:empresas(nome),
-            tipo_visitante:tipos_visitantes(nome),
+            empresa:empresas(id, nome, status),
+            tipo_visitante:tipos_visitantes(id, nome),
             condominio:condominios(id)
         `)
         .order('created_at', { ascending: false })
@@ -46,20 +47,36 @@ export default async function VisitantesPage(props: {
         return <div>Erro ao carregar visitantes: {(error as any).message}</div>
     }
 
-    // 4. Fetch do resumo de conformidade (separado para evitar erro de relacionamento de view)
+    // 4. Fetch de todos os tipos de documentos configurados
+    const { data: docTypes } = await supabase.from('documento_tipos').select('id, obrigatorio, entidade_alvo, vencimento_tipo')
+
+    if (error) {
+        return <div>Erro ao carregar visitantes: {(error as any).message}</div>
+    }
+
+    // 5. Fetch dos documentos para esses visitantes (relacionamento polimórfico manual)
     const visitorIds = visitantesRaw?.map(v => v.id) || []
-    const { data: summaryData } = await supabase
-        .from('v_entidade_conformidade_resumo')
-        .select('parent_id, status_geral')
+    const { data: allDocs } = await supabase
+        .from('documentos')
+        .select('*')
         .in('parent_id', visitorIds)
         .eq('parent_type', 'visitante')
 
-    // 5. Mapear para achatar o status_geral
-    const visitantes = visitantesRaw?.map(v => {
-        const summary = summaryData?.find(s => s.parent_id === v.id)
+    // 6. Mapear e calcular o status real da documentação
+    const visitantes = visitantesRaw?.map((v: any) => {
+        const requiredDocs = docTypes?.filter((t: any) => t.entidade_alvo === 'VISITANTE' || t.entidade_alvo === 'TODOS') || []
+        const myDocs = allDocs?.filter(d => d.parent_id === v.id) || []
+
+        let status_geral = calcularStatusConformidade(myDocs, requiredDocs as any)
+
+        // Regra Especial de Negócio: Se a empresa pai está bloqueada/inativa ou o próprio visitante está bloqueado, propaga o status
+        if (v.status === 'bloqueado' || v.empresa?.status === 'bloqueada' || v.empresa?.status === 'inativa') {
+            status_geral = 'bloqueado'
+        }
+
         return {
             ...v,
-            status_geral: summary?.status_geral || null
+            status_geral
         }
     })
 

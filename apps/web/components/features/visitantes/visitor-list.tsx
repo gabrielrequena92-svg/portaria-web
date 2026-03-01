@@ -35,7 +35,7 @@ interface Visitor {
     tipo_visitante_id?: string | null
     condominio_id: string
     condominio?: { id: string }
-    status_geral?: 'valido' | 'alerta' | 'vencido'
+    status_geral?: 'valido' | 'alerta' | 'vencido' | 'pendente' | 'sem_documentos' | 'bloqueado'
 }
 
 interface CompanyOption {
@@ -120,13 +120,19 @@ export function VisitorList({ data, empresas, tiposVisitantes, condominioId, aut
                                                     ? 'bg-red-50 text-red-700 border-red-100'
                                                     : visitor.status_geral === 'alerta'
                                                         ? 'bg-orange-50 text-orange-700 border-orange-100'
-                                                        : 'bg-slate-50 text-slate-500 border-slate-100'
+                                                        : visitor.status_geral === 'pendente'
+                                                            ? 'bg-amber-50 text-amber-700 border-amber-100'
+                                                            : visitor.status_geral === 'bloqueado'
+                                                                ? 'bg-rose-50 text-rose-700 border-rose-100'
+                                                                : 'bg-slate-50 text-slate-500 border-slate-100'
                                         }
                                     >
                                         {visitor.status_geral === 'valido' ? 'Em dia' :
                                             visitor.status_geral === 'vencido' ? 'Documento Vencido' :
                                                 visitor.status_geral === 'alerta' ? 'Vencendo em breve' :
-                                                    'Sem documentos'}
+                                                    visitor.status_geral === 'pendente' ? 'Doc. Pendente' :
+                                                        visitor.status_geral === 'bloqueado' ? 'Bloqueado p/ Acesso' :
+                                                            'Sem documentos'}
                                     </Badge>
                                 </TableCell>
                                 <TableCell>

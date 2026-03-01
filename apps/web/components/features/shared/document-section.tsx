@@ -36,6 +36,7 @@ export function DocumentSection({ parentId, parentType, entidade }: DocumentSect
     const [docs, setDocs] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
     const [uploading, setUploading] = useState<string | null>(null)
+    const [dates, setDates] = useState<Record<string, string>>({})
 
     const loadData = useCallback(async () => {
         setLoading(true)
@@ -166,11 +167,9 @@ export function DocumentSection({ parentId, parentType, entidade }: DocumentSect
                                                         <Input
                                                             type="date"
                                                             className="h-9 text-sm w-full sm:w-40 bg-white border-slate-200 focus:border-emerald-500 focus:ring-emerald-500 rounded-xl"
+                                                            value={dates[type.id] || ''}
                                                             onChange={(e) => {
-                                                                const fileInput = document.getElementById(`file-${type.id}`) as HTMLInputElement
-                                                                if (fileInput?.files?.[0]) {
-                                                                    handleUpload(type.id, fileInput.files[0], e.target.value)
-                                                                }
+                                                                setDates(prev => ({ ...prev, [type.id]: e.target.value }))
                                                             }}
                                                         />
                                                     </div>
@@ -191,13 +190,16 @@ export function DocumentSection({ parentId, parentType, entidade }: DocumentSect
                                                         accept=".pdf,.png,.jpg,.jpeg"
                                                         onChange={(e) => {
                                                             const file = e.target.files?.[0]
-                                                            if (file) {
-                                                                if (type.vencimento_tipo === 'NENHUM') {
-                                                                    handleUpload(type.id, file)
-                                                                } else {
-                                                                    toast.info('Selecione a data de vencimento primeiro.', { duration: 3000 })
-                                                                }
+                                                            if (!file) return;
+
+                                                            if (type.vencimento_tipo !== 'NENHUM' && !dates[type.id]) {
+                                                                toast.info('Selecione a data de vencimento primeiro.', { duration: 3000 })
+                                                                e.target.value = '' // Clear input
+                                                                return;
                                                             }
+
+                                                            handleUpload(type.id, file, dates[type.id])
+                                                            e.target.value = '' // Clear input
                                                         }}
                                                     />
                                                 </div>

@@ -88,8 +88,7 @@ export async function deleteDocument(documentId: string, filePath: string, paren
         .remove([filePath])
 
     if (storageError) {
-        console.error('Storage Delete Error:', storageError)
-        return { message: 'Erro ao remover arquivo do storage.' }
+        console.error('Storage Delete Error (ignorando para limpar banco):', storageError)
     }
 
     // 2. Remover do Banco

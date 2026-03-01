@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button'
 import { Plus } from 'lucide-react'
 import { CompanyList } from '@/components/features/empresas/company-list'
 import { CompanyDialog } from '@/components/features/empresas/company-dialog'
+import { calcularStatusConformidade } from '@/lib/utils/conformity'
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>
 
@@ -36,24 +37,36 @@ export default async function EmpresasPage(props: {
     // 1. Fetch das empresas
     const { data: companiesRaw, error } = await query
 
+    // 2. Fetch de todos os tipos de documentos configurados
+    const { data: docTypes } = await supabase.from('documento_tipos').select('id, obrigatorio, entidade_alvo, vencimento_tipo')
+
     if (error) {
         return <div>Erro ao carregar empresas: {error.message}</div>
     }
 
-    // 2. Fetch do resumo de conformidade (separado para evitar erro de relacionamento de view)
+    // 3. Fetch dos documentos para essas empresas (relacionamento polimórfico na mão)
     const companyIds = companiesRaw?.map(c => c.id) || []
-    const { data: summaryData } = await supabase
-        .from('v_entidade_conformidade_resumo')
-        .select('parent_id, status_geral')
+    const { data: allDocs } = await supabase
+        .from('documentos')
+        .select('*')
         .in('parent_id', companyIds)
         .eq('parent_type', 'empresa')
 
-    // 3. Mapear para achatar o status_geral
-    const empresas = companiesRaw?.map(c => {
-        const summary = summaryData?.find(s => s.parent_id === c.id)
+    // 4. Mapear e calcular o status real da documentação
+    const empresas = companiesRaw?.map((c: any) => {
+        const requiredDocs = docTypes?.filter((t: any) => t.entidade_alvo === c.tipo_empresa || t.entidade_alvo === 'TODOS') || []
+        const myDocs = allDocs?.filter(d => d.parent_id === c.id) || []
+
+        let status_geral = calcularStatusConformidade(myDocs, requiredDocs as any)
+
+        // Se a empresa já está bloqueada, a documentação reflete o bloqueio geral
+        if (c.status === 'bloqueada' || c.status === 'inativa') {
+            status_geral = 'bloqueado'
+        }
+
         return {
             ...c,
-            status_geral: summary?.status_geral || null
+            status_geral
         }
     })
 

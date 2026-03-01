@@ -26,7 +26,7 @@ interface Company {
     nome: string
     cnpj: string | null
     status: 'ativa' | 'bloqueada' | 'inativa'
-    status_geral?: 'valido' | 'alerta' | 'vencido' // Vem da view de conformidade
+    status_geral?: 'valido' | 'alerta' | 'vencido' | 'pendente' | 'sem_documentos' | 'bloqueado'
 }
 
 export function CompanyList({ data, isAdmin = false }: { data: Company[], isAdmin?: boolean }) {
@@ -91,13 +91,19 @@ export function CompanyList({ data, isAdmin = false }: { data: Company[], isAdmi
                                                     ? 'bg-red-50 text-red-700 border-red-100'
                                                     : company.status_geral === 'alerta'
                                                         ? 'bg-orange-50 text-orange-700 border-orange-100'
-                                                        : 'bg-slate-50 text-slate-500 border-slate-100'
+                                                        : company.status_geral === 'pendente'
+                                                            ? 'bg-amber-50 text-amber-700 border-amber-100'
+                                                            : company.status_geral === 'bloqueado'
+                                                                ? 'bg-rose-50 text-rose-700 border-rose-100'
+                                                                : 'bg-slate-50 text-slate-500 border-slate-100'
                                         }
                                     >
                                         {company.status_geral === 'valido' ? 'Em dia' :
                                             company.status_geral === 'vencido' ? 'Documento Vencido' :
                                                 company.status_geral === 'alerta' ? 'Vencendo em breve' :
-                                                    'Sem documentos'}
+                                                    company.status_geral === 'pendente' ? 'Doc. Pendente' :
+                                                        company.status_geral === 'bloqueado' ? 'Bloqueada p/ Acesso' :
+                                                            'Sem documentos'}
                                     </Badge>
                                 </TableCell>
                                 {isAdmin && (
