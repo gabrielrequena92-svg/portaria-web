@@ -26,6 +26,7 @@ interface Company {
     nome: string
     cnpj: string | null
     status: 'ativa' | 'bloqueada' | 'inativa'
+    status_geral?: 'valido' | 'alerta' | 'vencido' // Vem da view de conformidade
 }
 
 export function CompanyList({ data, isAdmin = false }: { data: Company[], isAdmin?: boolean }) {
@@ -46,6 +47,7 @@ export function CompanyList({ data, isAdmin = false }: { data: Company[], isAdmi
                             <TableHead className="w-[300px] text-xs font-bold uppercase tracking-wider text-slate-500 pl-8 py-4">Nome</TableHead>
                             <TableHead className="text-xs font-bold uppercase tracking-wider text-slate-500">CNPJ</TableHead>
                             <TableHead className="text-xs font-bold uppercase tracking-wider text-slate-500">Status</TableHead>
+                            <TableHead className="text-xs font-bold uppercase tracking-wider text-slate-500">Documentação</TableHead>
                             {isAdmin && <TableHead className="w-[100px] text-end pr-8">Ações</TableHead>}
                         </TableRow>
                     </TableHeader>
@@ -77,6 +79,25 @@ export function CompanyList({ data, isAdmin = false }: { data: Company[], isAdmi
                                                 'bg-slate-400'
                                             }`} />
                                         {company.status.charAt(0).toUpperCase() + company.status.slice(1)}
+                                    </Badge>
+                                </TableCell>
+                                <TableCell>
+                                    <Badge
+                                        variant="outline"
+                                        className={
+                                            company.status_geral === 'valido'
+                                                ? 'bg-emerald-50 text-emerald-700 border-emerald-100'
+                                                : company.status_geral === 'vencido'
+                                                    ? 'bg-red-50 text-red-700 border-red-100'
+                                                    : company.status_geral === 'alerta'
+                                                        ? 'bg-orange-50 text-orange-700 border-orange-100'
+                                                        : 'bg-slate-50 text-slate-500 border-slate-100'
+                                        }
+                                    >
+                                        {company.status_geral === 'valido' ? 'Em dia' :
+                                            company.status_geral === 'vencido' ? 'Documento Vencido' :
+                                                company.status_geral === 'alerta' ? 'Vencendo em breve' :
+                                                    'Sem documentos'}
                                     </Badge>
                                 </TableCell>
                                 {isAdmin && (

@@ -14,7 +14,10 @@ export default async function EmpresasPage(props: {
 
     let query = supabase
         .from('empresas')
-        .select('*')
+        .select(`
+            *,
+            resumo:v_entidade_conformidade_resumo!parent_id(status_geral)
+        `)
         .order('created_at', { ascending: false })
 
     if (searchParams.status === 'ativa') {
@@ -34,7 +37,13 @@ export default async function EmpresasPage(props: {
     const isAdmin = profile?.role === 'admin'
 
     // Fetch das empresas (Server Component)
-    const { data: empresas, error } = await query
+    const { data: companiesRaw, error } = await query
+
+    // Mapear para achatar o status_geral da view
+    const empresas = companiesRaw?.map(c => ({
+        ...c,
+        status_geral: (c.resumo as any)?.[0]?.status_geral || (c.resumo as any)?.status_geral
+    }))
 
     if (error) {
         return <div>Erro ao carregar empresas: {error.message}</div>

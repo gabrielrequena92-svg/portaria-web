@@ -10,6 +10,16 @@ class SyncStatusFooter extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final syncState = ref.watch(syncViewModelProvider);
 
+    // Only show if something is happening
+    final bool shouldShow = syncState.isSyncing || 
+                           syncState.hasConnectionError || 
+                           syncState.pendingCount > 0 || 
+                           syncState.showSuccessMessage;
+
+    if (!shouldShow) {
+      return const SizedBox.shrink();
+    }
+
     Color bgColor = Colors.green[50]!;
     Color iconColor = Colors.green[700]!;
     IconData iconData = Icons.cloud_done;
@@ -20,11 +30,16 @@ class SyncStatusFooter extends ConsumerWidget {
       iconColor = Colors.blue[700]!;
       iconData = Icons.cloud_sync;
       statusText = 'Sincronizando dados...';
+    } else if (syncState.hasConnectionError) {
+      bgColor = Colors.red[50]!;
+      iconColor = Colors.red[700]!;
+      iconData = Icons.cloud_off;
+      statusText = 'Verifique conexão';
     } else if (syncState.errorMessage != null) {
       bgColor = Colors.red[50]!;
       iconColor = Colors.red[700]!;
       iconData = Icons.cloud_off;
-      statusText = 'Offline: ${syncState.pendingCount} pendentes. Erro: ${syncState.errorMessage}';
+      statusText = 'Erro na sincronização';
     } else if (syncState.pendingCount > 0) {
       bgColor = Colors.orange[50]!;
       iconColor = Colors.orange[700]!;
@@ -34,7 +49,8 @@ class SyncStatusFooter extends ConsumerWidget {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      height: 40, // Consistent height for all states
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       color: bgColor,
       child: Row(
         children: [
@@ -48,28 +64,18 @@ class SyncStatusFooter extends ConsumerWidget {
               ),
             )
           else
-            Icon(iconData, color: iconColor, size: 20),
+            Icon(iconData, color: iconColor, size: 18),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
               statusText,
               style: TextStyle(
                 color: iconColor,
-                fontWeight: FontWeight.w500,
-                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                fontSize: 12,
               ),
             ),
           ),
-          if (!syncState.isSyncing)
-            IconButton(
-              icon: Icon(Icons.sync, color: iconColor),
-              iconSize: 24,
-              padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(),
-              onPressed: () {
-                ref.read(syncViewModelProvider.notifier).syncData();
-              },
-            ),
         ],
       ),
     );

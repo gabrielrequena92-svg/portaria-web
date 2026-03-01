@@ -34,9 +34,8 @@ class SyncService {
       if (errorStr.contains('socketexception') || 
           errorStr.contains('network') || 
           errorStr.contains('clientexception')) {
-        // Log locally but don't crash UI
-        print('Offline mode: Sync deferred. Data queued locally.');
-        return; 
+        // Rethrow so the UI can detect the lack of connection
+        rethrow;
       }
       // Rethrow other unexpected errors so UI can show them if critical
       rethrow;

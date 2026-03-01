@@ -33,6 +33,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         ),
         backgroundColor: Colors.white,
         foregroundColor: const Color(0xFF022C22),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.sync),
+            tooltip: 'Sincronizar agora',
+            onPressed: () => ref.read(syncViewModelProvider.notifier).syncData(),
+          ),
+          const SizedBox(width: 8),
+        ],
       ),
       body: Column(
         children: [
@@ -47,7 +55,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 FilteringTextInputFormatter.digitsOnly,
               ],
               decoration: InputDecoration(
-                hintText: 'Buscar por Nome ou CPF',
+                hintText: 'Busque por CPF',
                 prefixIcon: const Icon(Icons.search),
                 suffixIcon: _searchController.text.isNotEmpty 
                   ? IconButton(
@@ -101,9 +109,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                               final visitante = state.visitantes[index];
                               final empresaNome = state.empresas[visitante.empresaId]?.nome ?? '-';
                               return VisitanteCard(
+                                key: ValueKey(visitante.id),
                                 visitante: visitante,
                                 empresaNome: empresaNome,
                                 viewModel: viewModel,
+                                onSuccess: () {
+                                  _searchController.clear();
+                                  viewModel.loadVisitantes('');
+                                },
                               );
                             },
                           ),
@@ -112,23 +125,34 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           const SyncStatusFooter(),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () async {
-          final Visitante? scannedVisitante = await Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const ScannerScreen()),
-          );
+      floatingActionButton: () {
+        final syncState = ref.watch(syncViewModelProvider);
+        final bool isFooterVisible = syncState.isSyncing || 
+                                    syncState.hasConnectionError || 
+                                    syncState.pendingCount > 0 || 
+                                    syncState.showSuccessMessage;
+        
+        return Padding(
+          padding: EdgeInsets.only(bottom: isFooterVisible ? 48.0 : 0.0),
+          child: FloatingActionButton.extended(
+            onPressed: () async {
+              final Visitante? scannedVisitante = await Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const ScannerScreen()),
+              );
 
-          if (scannedVisitante != null && mounted) {
-            final viewModel = ref.read(homeViewModelProvider.notifier);
-            _showQuickAccessDialog(context, scannedVisitante, viewModel);
-          }
-        },
-        backgroundColor: const Color(0xFF022C22),
-        foregroundColor: Colors.white,
-        icon: const Icon(Icons.qr_code_scanner),
-        label: const Text('ESCANEAR QR', style: TextStyle(fontWeight: FontWeight.bold)),
-      ),
+              if (scannedVisitante != null && mounted) {
+                final viewModel = ref.read(homeViewModelProvider.notifier);
+                _showQuickAccessDialog(context, scannedVisitante, viewModel);
+              }
+            },
+            backgroundColor: const Color(0xFF022C22),
+            foregroundColor: Colors.white,
+            icon: const Icon(Icons.qr_code_scanner),
+            label: const Text('ESCANEAR QR', style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+        );
+      }(),
     );
   }
 
@@ -140,7 +164,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           Icon(Icons.search, size: 80, color: Colors.grey[300]),
           const SizedBox(height: 16),
           Text(
-            'Digite o CPF ou Nome para buscar',
+            'Digite o CPF para buscar',
             style: TextStyle(fontSize: 18, color: Colors.grey[500]),
           ),
         ],
@@ -238,7 +262,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   visitante: visitante,
                   empresaNome: empresaNome,
                   viewModel: viewModel,
-                  onSuccess: () => Navigator.pop(context), // Close modal on success
+                  onSuccess: () {
+                    _searchController.clear();
+                    viewModel.loadVisitantes('');
+                    Navigator.pop(context); // Close modal on success
+                  },
                 ),
               ),
               const SizedBox(height: 16),

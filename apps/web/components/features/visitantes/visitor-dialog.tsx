@@ -20,11 +20,14 @@ import {
     SelectValue,
 } from '@/components/ui/select'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { QRCodeSVG } from 'qrcode.react'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { DocumentSection } from '../shared/document-section'
+import { toast } from 'sonner'
 import { Plus, User, Upload, Download, Share2, CheckCircle2, ArrowLeft } from 'lucide-react'
 import { useState } from 'react'
 import { createOrUpdateVisitor } from '@/app/dashboard/visitantes/actions'
 import { useFormStatus } from 'react-dom'
-import { QRCodeSVG } from 'qrcode.react'
 
 interface VisitorDialogProps {
     visitor?: {
@@ -100,7 +103,7 @@ export function VisitorDialog({ visitor, empresas, tiposVisitantes, condominioId
                 <DialogHeader>
                     <DialogTitle>{visitor ? 'Editar Visitante' : 'Novo Visitante'}</DialogTitle>
                     <DialogDescription>
-                        Cadastre os dados e foto do visitante.
+                        {visitor ? 'Gerencie os dados e documentos do visitante.' : 'Cadastre os dados e foto do visitante.'}
                     </DialogDescription>
                 </DialogHeader>
 
@@ -173,153 +176,174 @@ export function VisitorDialog({ visitor, empresas, tiposVisitantes, condominioId
                         </div>
                     </div>
                 ) : (
-                    <form action={async (formData) => {
-                        setFieldErrors({})
-                        setGeneralError(null)
-                        const res = await createOrUpdateVisitor(null, formData)
-                        if (res?.success) {
-                            if (res.visitorId && !visitor) { // Only show for NEW visitors
-                                setRegisteredId(res.visitorId)
-                            } else {
-                                setIsOpen(false)
-                            }
-                        } else {
-                            if (res?.errors) {
-                                setFieldErrors(res.errors)
-                            }
-                            if (res?.message) {
-                                setGeneralError(res.message)
-                            }
-                        }
-                    }}>
-                        <input type="hidden" name="id" value={visitor?.id || ''} />
+                    <Tabs defaultValue="dados" className="w-full">
+                        <TabsList className="grid w-full grid-cols-2">
+                            <TabsTrigger value="dados">Dados Básicos</TabsTrigger>
+                            <TabsTrigger value="documentos" disabled={!visitor}>Documentação</TabsTrigger>
+                        </TabsList>
 
-                        <div className="grid gap-6 py-4">
-                            {/* Seção da Foto */}
-                            <div className="flex flex-col items-center gap-4">
-                                <Avatar className="h-24 w-24">
-                                    <AvatarImage src={previewUrl || ''} />
-                                    <AvatarFallback>
-                                        <User className="h-12 w-12 text-muted-foreground" />
-                                    </AvatarFallback>
-                                </Avatar>
-                                <div className="flex items-center gap-2">
-                                    <Label htmlFor="foto" className="cursor-pointer">
-                                        <div className="flex items-center gap-2 text-sm text-blue-600 hover:underline">
-                                            <Upload className="h-4 w-4" />
-                                            Escolher Foto
+                        <TabsContent value="dados">
+                            <form action={async (formData) => {
+                                setFieldErrors({})
+                                setGeneralError(null)
+                                const res = await createOrUpdateVisitor(null, formData)
+                                if (res?.success) {
+                                    if (res.visitorId && !visitor) { // Only show for NEW visitors
+                                        setRegisteredId(res.visitorId)
+                                    } else {
+                                        toast.success('Visitante atualizado com sucesso!')
+                                        setIsOpen(false)
+                                    }
+                                } else {
+                                    if (res?.errors) {
+                                        setFieldErrors(res.errors)
+                                    }
+                                    if (res?.message) {
+                                        setGeneralError(res.message)
+                                        toast.error(res.message)
+                                    }
+                                }
+                            }}>
+                                <input type="hidden" name="id" value={visitor?.id || ''} />
+
+                                <div className="grid gap-6 py-4">
+                                    {/* Seção da Foto */}
+                                    <div className="flex flex-col items-center gap-4">
+                                        <Avatar className="h-24 w-24">
+                                            <AvatarImage src={previewUrl || ''} />
+                                            <AvatarFallback>
+                                                <User className="h-12 w-12 text-muted-foreground" />
+                                            </AvatarFallback>
+                                        </Avatar>
+                                        <div className="flex items-center gap-2">
+                                            <Label htmlFor="foto" className="cursor-pointer">
+                                                <div className="flex items-center gap-2 text-sm text-blue-600 hover:underline">
+                                                    <Upload className="h-4 w-4" />
+                                                    Escolher Foto
+                                                </div>
+                                                <Input
+                                                    id="foto"
+                                                    name="foto"
+                                                    type="file"
+                                                    accept="image/*"
+                                                    className="hidden"
+                                                    onChange={handleFileChange}
+                                                />
+                                            </Label>
                                         </div>
+                                    </div>
+
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="nome" className={fieldErrors.nome ? 'text-red-500' : ''}>Nome Completo</Label>
                                         <Input
-                                            id="foto"
-                                            name="foto"
-                                            type="file"
-                                            accept="image/*"
-                                            className="hidden"
-                                            onChange={handleFileChange}
+                                            id="nome"
+                                            name="nome"
+                                            defaultValue={visitor?.nome}
+                                            required
+                                            placeholder="Ex: João da Silva"
+                                            className={fieldErrors.nome ? 'border-red-500 focus-visible:ring-red-500' : ''}
                                         />
-                                    </Label>
-                                </div>
-                            </div>
+                                        {fieldErrors.nome && (
+                                            <p className="text-xs text-red-500">{fieldErrors.nome[0]}</p>
+                                        )}
+                                    </div>
 
-                            <div className="grid gap-2">
-                                <Label htmlFor="nome" className={fieldErrors.nome ? 'text-red-500' : ''}>Nome Completo</Label>
-                                <Input
-                                    id="nome"
-                                    name="nome"
-                                    defaultValue={visitor?.nome}
-                                    required
-                                    placeholder="Ex: João da Silva"
-                                    className={fieldErrors.nome ? 'border-red-500 focus-visible:ring-red-500' : ''}
-                                />
-                                {fieldErrors.nome && (
-                                    <p className="text-xs text-red-500">{fieldErrors.nome[0]}</p>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="grid gap-2">
+                                            <Label htmlFor="cpf" className={fieldErrors.cpf ? 'text-red-500' : ''}>CPF (somente números)</Label>
+                                            <Input
+                                                id="cpf"
+                                                name="cpf"
+                                                defaultValue={visitor?.cpf}
+                                                required
+                                                placeholder="12345678900"
+                                                maxLength={11}
+                                                className={fieldErrors.cpf ? 'border-red-500 focus-visible:ring-red-500' : ''}
+                                            />
+                                            {fieldErrors.cpf && (
+                                                <p className="text-xs text-red-500">{fieldErrors.cpf[0]}</p>
+                                            )}
+                                        </div>
+                                        <div className="grid gap-2">
+                                            <Label htmlFor="status">Status</Label>
+                                            <Select name="status" defaultValue={visitor?.status || 'ativo'}>
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Selecione" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="ativo">Ativo</SelectItem>
+                                                    <SelectItem value="bloqueado">Bloqueado</SelectItem>
+                                                    <SelectItem value="inativo">Inativo</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="grid gap-2">
+                                            <Label htmlFor="tipo_visitante_id">Categoria</Label>
+                                            <Select name="tipo_visitante_id" defaultValue={visitor?.tipo_visitante_id || tiposVisitantes[0]?.id}>
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Selecione" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {tiposVisitantes.map(t => (
+                                                        <SelectItem key={t.id} value={t.id}>{t.nome}</SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                        <div className="grid gap-2">
+                                            <Label htmlFor="empresa_id">Empresa (Opcional)</Label>
+                                            <Select name="empresa_id" defaultValue={visitor?.empresa_id || 'none'}>
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Selecione" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="none">Nenhuma</SelectItem>
+                                                    {empresas.map(emp => (
+                                                        <SelectItem key={emp.id} value={emp.id}>
+                                                            {emp.nome}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                    </div>
+
+                                    <div className="grid gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                                        <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Informações do Veículo (Opcional)</p>
+                                        <div className="grid gap-2">
+                                            <Label htmlFor="placa_veiculo">Placa do Veículo</Label>
+                                            <Input
+                                                id="placa_veiculo"
+                                                name="placa_veiculo"
+                                                placeholder="ABC-1234"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {generalError && !Object.keys(fieldErrors).length && (
+                                    <p className="text-sm text-red-500 text-center">{generalError}</p>
                                 )}
-                            </div>
 
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="grid gap-2">
-                                    <Label htmlFor="cpf" className={fieldErrors.cpf ? 'text-red-500' : ''}>CPF (somente números)</Label>
-                                    <Input
-                                        id="cpf"
-                                        name="cpf"
-                                        defaultValue={visitor?.cpf}
-                                        required
-                                        placeholder="12345678900"
-                                        maxLength={11}
-                                        className={fieldErrors.cpf ? 'border-red-500 focus-visible:ring-red-500' : ''}
-                                    />
-                                    {fieldErrors.cpf && (
-                                        <p className="text-xs text-red-500">{fieldErrors.cpf[0]}</p>
-                                    )}
-                                </div>
-                                <div className="grid gap-2">
-                                    <Label htmlFor="status">Status</Label>
-                                    <Select name="status" defaultValue={visitor?.status || 'ativo'}>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Selecione" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="ativo">Ativo</SelectItem>
-                                            <SelectItem value="bloqueado">Bloqueado</SelectItem>
-                                            <SelectItem value="inativo">Inativo</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                            </div>
+                                <DialogFooter>
+                                    <SubmitButton />
+                                </DialogFooter>
+                            </form>
+                        </TabsContent>
 
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="grid gap-2">
-                                    <Label htmlFor="tipo_visitante_id">Categoria</Label>
-                                    <Select name="tipo_visitante_id" defaultValue={visitor?.tipo_visitante_id || tiposVisitantes[0]?.id}>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Selecione" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {tiposVisitantes.map(t => (
-                                                <SelectItem key={t.id} value={t.id}>{t.nome}</SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                                <div className="grid gap-2">
-                                    <Label htmlFor="empresa_id">Empresa (Opcional)</Label>
-                                    <Select name="empresa_id" defaultValue={visitor?.empresa_id || 'none'}>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Selecione" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="none">Nenhuma</SelectItem>
-                                            {empresas.map(emp => (
-                                                <SelectItem key={emp.id} value={emp.id}>
-                                                    {emp.nome}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                            </div>
-
-                            <div className="grid gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                                <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Informações do Veículo (Opcional)</p>
-                                <div className="grid gap-2">
-                                    <Label htmlFor="placa_veiculo">Placa do Veículo</Label>
-                                    <Input
-                                        id="placa_veiculo"
-                                        name="placa_veiculo"
-                                        placeholder="ABC-1234"
-                                    />
-                                </div>
-                            </div>
-                        </div>
-
-                        {generalError && !Object.keys(fieldErrors).length && (
-                            <p className="text-sm text-red-500 text-center">{generalError}</p>
-                        )}
-
-                        <DialogFooter>
-                            <SubmitButton />
-                        </DialogFooter>
-                    </form>
+                        <TabsContent value="documentos">
+                            {visitor && (
+                                <DocumentSection
+                                    parentId={visitor.id}
+                                    parentType="visitante"
+                                    entidade="VISITANTE"
+                                />
+                            )}
+                        </TabsContent>
+                    </Tabs>
                 )}
             </DialogContent>
         </Dialog>

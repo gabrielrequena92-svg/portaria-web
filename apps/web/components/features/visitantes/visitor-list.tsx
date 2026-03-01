@@ -35,6 +35,7 @@ interface Visitor {
     tipo_visitante_id?: string | null
     condominio_id: string
     condominio?: { id: string }
+    status_geral?: 'valido' | 'alerta' | 'vencido'
 }
 
 interface CompanyOption {
@@ -77,11 +78,12 @@ export function VisitorList({ data, empresas, tiposVisitantes, condominioId, aut
                     <TableHeader className="bg-slate-50/50">
                         <TableRow className="hover:bg-transparent border-b border-slate-100">
                             <TableHead className="w-[80px] pl-8 py-4"></TableHead>
-                            <TableHead className="w-[250px] text-xs font-bold uppercase tracking-wider text-slate-500">Nome</TableHead>
+                            <TableHead className="w-[200px] text-xs font-bold uppercase tracking-wider text-slate-500">Nome</TableHead>
                             <TableHead className="text-xs font-bold uppercase tracking-wider text-slate-500">CPF</TableHead>
-                            <TableHead className="text-xs font-bold uppercase tracking-wider text-slate-500">Empresa</TableHead>
-                            <TableHead className="text-xs font-bold uppercase tracking-wider text-slate-500">Categoria</TableHead>
+                            <TableHead className="text-xs font-bold uppercase tracking-wider text-slate-500">Empresa/Categoria</TableHead>
+                            <TableHead className="text-xs font-bold uppercase tracking-wider text-slate-500">Documentação</TableHead>
                             <TableHead className="text-xs font-bold uppercase tracking-wider text-slate-500">Status</TableHead>
+                            {/* Admin actions column already handled below */}
                             <TableHead className="w-[100px] text-end pr-8">Ações</TableHead>
                         </TableRow>
                     </TableHeader>
@@ -98,25 +100,34 @@ export function VisitorList({ data, empresas, tiposVisitantes, condominioId, aut
                                 </TableCell>
                                 <TableCell className="font-semibold text-slate-900">{visitor.nome}</TableCell>
                                 <TableCell className="text-slate-500 font-mono text-xs">{visitor.cpf}</TableCell>
-                                <TableCell className="text-slate-600 font-medium text-sm">
-                                    {visitor.empresa?.nome ? (
-                                        <div className="flex items-center gap-2">
-                                            <span className="w-1.5 h-1.5 rounded-full bg-blue-400" />
-                                            {visitor.empresa.nome}
-                                        </div>
-                                    ) : (
-                                        <span className="text-slate-400 italic">Sem empresa</span>
-                                    )}
+                                <TableCell>
+                                    <div className="flex flex-col gap-1">
+                                        <span className="text-slate-600 font-medium text-sm">
+                                            {visitor.empresa?.nome || <span className="text-slate-400 italic text-xs">Sem empresa</span>}
+                                        </span>
+                                        <span className="text-slate-400 text-xs">
+                                            {visitor.tipo_visitante?.nome || 'Visitante'}
+                                        </span>
+                                    </div>
                                 </TableCell>
-                                <TableCell className="text-slate-600 font-medium text-sm">
-                                    {visitor.tipo_visitante?.nome ? (
-                                        <div className="flex items-center gap-2">
-                                            <span className="w-1.5 h-1.5 rounded-full bg-purple-400" />
-                                            {visitor.tipo_visitante.nome}
-                                        </div>
-                                    ) : (
-                                        <span className="text-slate-400 italic">Sem categoria</span>
-                                    )}
+                                <TableCell>
+                                    <Badge
+                                        variant="outline"
+                                        className={
+                                            visitor.status_geral === 'valido'
+                                                ? 'bg-emerald-50 text-emerald-700 border-emerald-100'
+                                                : visitor.status_geral === 'vencido'
+                                                    ? 'bg-red-50 text-red-700 border-red-100'
+                                                    : visitor.status_geral === 'alerta'
+                                                        ? 'bg-orange-50 text-orange-700 border-orange-100'
+                                                        : 'bg-slate-50 text-slate-500 border-slate-100'
+                                        }
+                                    >
+                                        {visitor.status_geral === 'valido' ? 'Em dia' :
+                                            visitor.status_geral === 'vencido' ? 'Documento Vencido' :
+                                                visitor.status_geral === 'alerta' ? 'Vencendo em breve' :
+                                                    'Sem documentos'}
+                                    </Badge>
                                 </TableCell>
                                 <TableCell>
                                     <Badge

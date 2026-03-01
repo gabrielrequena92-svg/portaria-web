@@ -8,6 +8,7 @@ const companySchema = z.object({
     id: z.string().optional(),
     nome: z.string().min(3, "O nome deve ter pelo menos 3 caracteres"),
     cnpj: z.string().optional(),
+    tipo_empresa: z.enum(["MEI", "GERAL"]).default("GERAL"),
     status: z.enum(["ativa", "bloqueada", "inativa"]).default("ativa"),
 })
 
@@ -36,7 +37,8 @@ export async function createOrUpdateCompany(prevState: any, formData: FormData) 
         id: formData.get('id') as string,
         nome: formData.get('nome') as string,
         cnpj: formData.get('cnpj') as string,
-        status: formData.get('status') as "ativa" | "bloqueada" | "inativa",
+        tipo_empresa: (formData.get('tipo_empresa') as string) || "GERAL",
+        status: (formData.get('status') as "ativa" | "bloqueada" | "inativa") || "ativa",
     }
 
     const validatedFields = companySchema.safeParse(rawData)

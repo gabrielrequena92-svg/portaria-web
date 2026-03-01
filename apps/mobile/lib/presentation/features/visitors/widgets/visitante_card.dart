@@ -38,6 +38,14 @@ class _VisitanteCardState extends ConsumerState<VisitanteCard> {
     _loadStatus();
   }
 
+  @override
+  void didUpdateWidget(VisitanteCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.visitante.id != widget.visitante.id) {
+      _loadStatus();
+    }
+  }
+
   Future<void> _loadStatus() async {
     final registro = await widget.viewModel.getUltimoRegistroVisitante(widget.visitante.id);
     if (mounted) {

@@ -7,6 +7,7 @@ Este documento serve como a **memória de longo prazo** para o agente (Antigravi
 ## 1. Identidade e Habilidades do Agente (Antigravity)
 
 **Função:** Arquiteto de Software Full-Stack (Especialista em SaaS & Mobile Offline-First)
+**Idioma Obrigatório:** Português (Brasil). Toda a documentação, comentários e comunicação devem ser preferencialmente em Português.
 
 **Habilidades Principais:**
 *   **Arquitetura de Sistemas:** Definição de microserviços, monólitos modulares, clean architecture e estratégias de sincronização offline.
@@ -17,7 +18,8 @@ Este documento serve como a **memória de longo prazo** para o agente (Antigravi
 *   **DevOps Básico:** Configuração de deploy (Vercel/Render) e scripts de automação.
 *   **Geração de Assets com IA:** Criação de mockups de UI de alta fidelidade e ícones para prototipagem rápida.
 *   **PWA & Mobile Sync:** Implementação de Progressive Web Apps e lógica de sincronização bidirecional (Drift/Supabase).
-*   **UI/UX Design Avançado:** Criação de interfaces "Wow-factor", layouts inovadores, polimento visual e experiência do usuário fluida (foco em estética premium).
+*   **Gestão de Documentos & Compliance:** Implementação de sistemas de upload (Storage), processamento de arquivos (PDF/Imagens), controle de validade e automação de bloqueio de acesso (business logic baseada em documentos).
+21: *   **UI/UX Design Avançado:** Criação de interfaces "Wow-factor", layouts inovadores, polimento visual e experiência do usuário fluida (foco em estética premium).
 
 ---
 
@@ -62,6 +64,11 @@ Este documento serve como a **memória de longo prazo** para o agente (Antigravi
 *   [x] **Regra de Negócio (DB):** Trigger `on_empresa_status_change` implementada para bloquear visitantes automaticamente quando a empresa é bloqueada.
 *   [x] **UI/UX:** Refinamento visual (Tema Verde/Custom) concluído.
 *   [x] **Relatórios:** Módulo de relatórios avançados implementado.
+*   [x] **Gestão de Documentos:**
+    *   [x] Infraestrutura de Storage (Bucket `documentos`) e Tabelas SQL.
+    *   [x] Definição de 22 tipos de documentos com regras de validade.
+    *   [x] Interface de Upload/Gestão integrada em Empresas e Visitantes.
+    *   [x] Sistema de Alertas (10 dias) e visualização de conformidade nas listagens.
 *   [x] **Deploy:** Sistema operando no Vercel.
 *   [x] **Debugging Crítico:**
     *   **Async Cookies:** Migração de `cookies()` síncrono para `await cookies()` (compatibilidade Next.js 15+).
@@ -78,6 +85,8 @@ Este documento serve como a **memória de longo prazo** para o agente (Antigravi
 
 ## 5. Próximos Passos (Roadmap Imediato)
 
+*   [ ] **Notificações Ativas:** Implementar envio de emails/push para documentos vencendo.
+*   [ ] **Bloqueio Mobile:** Garantir que o app Flutter exiba o alerta de bloqueio por documentação de forma clara.
 *   [ ] **Integração com Hardware:** (A definir) Possível integração com leitores biométricos ou portões.
 
 ## 6. Melhorias Futuras (Backlog)

@@ -17,7 +17,8 @@ export default async function VisitantesPage(props: {
             *,
             empresa:empresas(nome),
             tipo_visitante:tipos_visitantes(nome),
-            condominio:condominios(id)
+            condominio:condominios(id),
+            resumo:v_entidade_conformidade_resumo!parent_id(status_geral)
         `)
         .order('created_at', { ascending: false })
 
@@ -39,7 +40,16 @@ export default async function VisitantesPage(props: {
         }
     }
 
-    const { data: visitantes, error } = await query
+    const { data: visitantesRaw, error } = await query
+
+    const visitantes = visitantesRaw?.map(v => ({
+        ...v,
+        status_geral: (v.resumo as any)?.[0]?.status_geral || (v.resumo as any)?.status_geral
+    }))
+
+    if (error) {
+        return <div>Erro ao carregar visitantes: {error.message}</div>
+    }
 
     // Fetch empresas para o select do formulário
     const { data: empresas } = await supabase
@@ -65,7 +75,7 @@ export default async function VisitantesPage(props: {
     const currentCondominioId = profile?.condominio_id || 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'
 
     if (error) {
-        return <div>Erro ao carregar visitantes: {error.message}</div>
+        return <div>Erro ao carregar visitantes: {(error as any).message}</div>
     }
 
     const shouldOpenNew = searchParams.action === 'new'

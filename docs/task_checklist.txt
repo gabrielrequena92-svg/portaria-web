@@ -26,6 +26,8 @@
     - [x] Implementação de Banco Local (Drift/SQLite) <!-- id: 16 -->
     - [x] Mecanismo de Sincronização (Upload/Download) <!-- id: 17 -->
     - [x] Interface do Porteiro e Fluxo de Registro <!-- id: 18 -->
-- [/] Validação e Entrega <!-- id: 19 -->
+- [x] Validação e Entrega <!-- id: 19 -->
     - [x] Testes de Sincronização e Conflitos <!-- id: 20 -->
-    - [ ] Validação de Segurança e Performance <!-- id: 21 -->
+    - [x] Validação de Segurança e Performance (Sprint 2 OK) <!-- id: 21 -->
+    - [x] Implementação de Auditoria e Logs <!-- id: 22 -->
+    - [x] Exportação de Relatórios (PDF/CSV) <!-- id: 23 -->
