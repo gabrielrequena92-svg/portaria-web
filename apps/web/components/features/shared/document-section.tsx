@@ -86,40 +86,41 @@ export function DocumentSection({ parentId, parentType, entidade }: DocumentSect
     return (
         <div className="space-y-4 py-4">
             <div className="max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 gap-3 px-1">
                     {types.map((type) => {
                         const existingDoc = docs.find(d => d.documento_nome === type.nome)
 
                         return (
                             <Card key={type.id} className={`transition-all duration-200 ${existingDoc ? 'border-emerald-100 bg-emerald-50/20 shadow-sm' : 'border-dashed border-slate-200 hover:border-slate-300 hover:bg-slate-50/50'}`}>
-                                <CardContent className="p-3 flex items-center justify-between gap-3 min-h-[70px]">
-                                    <div className="flex items-center gap-3">
-                                        <div className={`p-2 rounded-lg ${existingDoc ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-400'}`}>
-                                            <FileText className="h-5 w-5" />
+                                <CardContent className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                    <div className="flex items-center gap-4">
+                                        <div className={`p-2.5 rounded-xl shrink-0 ${existingDoc ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-400'}`}>
+                                            <FileText className="h-6 w-6" />
                                         </div>
-                                        <div>
-                                            <div className="flex items-center gap-2">
-                                                <p className="font-medium text-sm text-slate-900">{type.nome}</p>
+                                        <div className="min-w-0">
+                                            <div className="flex flex-wrap items-center gap-2">
+                                                <p className="font-semibold text-sm text-slate-900 truncate">{type.nome}</p>
                                                 {type.obrigatorio && !existingDoc && (
-                                                    <Badge variant="outline" className="text-[10px] h-4 text-red-500 border-red-200 bg-red-50">Obrigatório</Badge>
+                                                    <Badge variant="outline" className="text-[10px] uppercase font-bold px-1.5 h-4 text-red-500 border-red-200 bg-red-50">Obrigatório</Badge>
                                                 )}
                                             </div>
                                             {existingDoc && (
-                                                <div className="flex items-center gap-2 mt-1">
+                                                <div className="flex flex-wrap items-center gap-3 mt-1.5">
                                                     <Badge
                                                         variant="secondary"
-                                                        className={`text-[10px] h-4 ${existingDoc.status_vencimento === 'vencido' ? 'bg-red-100 text-red-700' :
+                                                        className={`text-[10px] font-bold px-2 h-4 ${existingDoc.status_vencimento === 'vencido' ? 'bg-red-100 text-red-700' :
                                                             existingDoc.status_vencimento === 'alerta' ? 'bg-orange-100 text-orange-700' :
                                                                 'bg-emerald-100 text-emerald-700'
                                                             }`}
                                                     >
-                                                        {existingDoc.status_vencimento === 'vencido' ? 'Vencido' :
-                                                            existingDoc.status_vencimento === 'alerta' ? 'Vence em breve' :
-                                                                'Válido'}
+                                                        {existingDoc.status_vencimento === 'vencido' ? 'VENCIDO' :
+                                                            existingDoc.status_vencimento === 'alerta' ? 'VENCE EM BREVE' :
+                                                                'VÁLIDO'}
                                                     </Badge>
                                                     {existingDoc.data_vencimento && (
-                                                        <span className="text-[10px] text-slate-500">
-                                                            Validade: {new Date(existingDoc.data_vencimento).toLocaleDateString('pt-BR')}
+                                                        <span className="text-[11px] font-medium text-slate-500 flex items-center gap-1">
+                                                            <Clock className="h-3 w-3" />
+                                                            Expira em: {new Date(existingDoc.data_vencimento).toLocaleDateString('pt-BR')}
                                                         </span>
                                                     )}
                                                 </div>
@@ -127,22 +128,22 @@ export function DocumentSection({ parentId, parentType, entidade }: DocumentSect
                                         </div>
                                     </div>
 
-                                    <div className="flex flex-col items-end gap-1.5 w-[140px] shrink-0">
+                                    <div className="flex items-center gap-3 shrink-0 sm:ml-auto">
                                         {existingDoc ? (
-                                            <div className="flex items-center gap-1">
+                                            <div className="flex items-center gap-2">
                                                 <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    className="h-8 w-8 text-slate-400 hover:text-slate-600 hover:bg-slate-200/50 rounded-full"
+                                                    variant="outline"
+                                                    size="sm"
+                                                    className="h-9 px-3 gap-2 text-slate-600 border-slate-200 hover:bg-slate-50 rounded-xl"
                                                     onClick={() => window.open(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/documentos/${existingDoc.arquivo_url}`, '_blank')}
-                                                    title="Visualizar"
                                                 >
                                                     <Eye className="h-4 w-4" />
+                                                    <span className="hidden sm:inline">Visualizar</span>
                                                 </Button>
                                                 <Button
                                                     variant="ghost"
                                                     size="icon"
-                                                    className="h-8 w-8 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-full"
+                                                    className="h-9 w-9 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-xl"
                                                     onClick={() => handleDelete(existingDoc.id, existingDoc.arquivo_url)}
                                                     title="Excluir"
                                                 >
@@ -150,13 +151,13 @@ export function DocumentSection({ parentId, parentType, entidade }: DocumentSect
                                                 </Button>
                                             </div>
                                         ) : (
-                                            <div className="flex flex-col gap-1.5 w-full">
+                                            <div className="flex flex-col sm:flex-row items-end sm:items-center gap-3">
                                                 {type.vencimento_tipo !== 'NENHUM' && (
-                                                    <div className="space-y-1">
-                                                        <span className="text-[9px] uppercase font-bold text-slate-400 px-1">Vencimento</span>
+                                                    <div className="flex flex-col sm:items-end gap-1">
+                                                        <span className="text-[10px] uppercase font-bold text-slate-400 px-1">Vencimento</span>
                                                         <Input
                                                             type="date"
-                                                            className="h-7 text-[10px] w-full bg-white/50 border-slate-200 focus:border-emerald-500 focus:ring-emerald-500"
+                                                            className="h-9 text-sm w-full sm:w-40 bg-white border-slate-200 focus:border-emerald-500 focus:ring-emerald-500 rounded-xl"
                                                             onChange={(e) => {
                                                                 const fileInput = document.getElementById(`file-${type.id}`) as HTMLInputElement
                                                                 if (fileInput?.files?.[0]) {
@@ -166,29 +167,32 @@ export function DocumentSection({ parentId, parentType, entidade }: DocumentSect
                                                         />
                                                     </div>
                                                 )}
-                                                <Label
-                                                    htmlFor={`file-${type.id}`}
-                                                    className={`cursor-pointer inline-flex items-center justify-center rounded-lg text-[10px] font-semibold transition-all border border-slate-200 bg-white hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200 h-7 px-3 shadow-none hover:shadow-sm ${uploading === type.id ? 'opacity-50 pointer-events-none' : ''}`}
-                                                >
-                                                    <Upload className="h-3 w-3 mr-1.5" />
-                                                    {uploading === type.id ? 'Subindo...' : 'Enviar'}
-                                                </Label>
-                                                <input
-                                                    id={`file-${type.id}`}
-                                                    type="file"
-                                                    className="hidden"
-                                                    accept=".pdf,.png,.jpg,.jpeg"
-                                                    onChange={(e) => {
-                                                        const file = e.target.files?.[0]
-                                                        if (file) {
-                                                            if (type.vencimento_tipo === 'NENHUM') {
-                                                                handleUpload(type.id, file)
-                                                            } else {
-                                                                toast.info('Defina a data de vencimento primeiro.', { duration: 2000 })
+                                                <div className="flex flex-col sm:items-end gap-1">
+                                                    <span className="text-[10px] uppercase font-bold text-slate-400 px-1 opacity-0 hidden sm:block">Ações</span>
+                                                    <Label
+                                                        htmlFor={`file-${type.id}`}
+                                                        className={`cursor-pointer inline-flex items-center justify-center rounded-xl text-sm font-bold transition-all border border-emerald-600 bg-emerald-600 text-white hover:bg-emerald-700 h-9 px-5 shadow-sm shadow-emerald-200 ${uploading === type.id ? 'opacity-50 pointer-events-none' : ''}`}
+                                                    >
+                                                        <Upload className="h-4 w-4 mr-2" />
+                                                        {uploading === type.id ? 'Subindo...' : 'Enviar Arquivo'}
+                                                    </Label>
+                                                    <input
+                                                        id={`file-${type.id}`}
+                                                        type="file"
+                                                        className="hidden"
+                                                        accept=".pdf,.png,.jpg,.jpeg"
+                                                        onChange={(e) => {
+                                                            const file = e.target.files?.[0]
+                                                            if (file) {
+                                                                if (type.vencimento_tipo === 'NENHUM') {
+                                                                    handleUpload(type.id, file)
+                                                                } else {
+                                                                    toast.info('Selecione a data de vencimento primeiro.', { duration: 3000 })
+                                                                }
                                                             }
-                                                        }
-                                                    }}
-                                                />
+                                                        }}
+                                                    />
+                                                </div>
                                             </div>
                                         )}
                                     </div>
