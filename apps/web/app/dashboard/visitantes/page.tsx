@@ -17,8 +17,7 @@ export default async function VisitantesPage(props: {
             *,
             empresa:empresas(nome),
             tipo_visitante:tipos_visitantes(nome),
-            condominio:condominios(id),
-            resumo:v_entidade_conformidade_resumo!parent_id(status_geral)
+            condominio:condominios(id)
         `)
         .order('created_at', { ascending: false })
 
@@ -40,16 +39,29 @@ export default async function VisitantesPage(props: {
         }
     }
 
+    // 3. Fetch dos visitantes
     const { data: visitantesRaw, error } = await query
 
-    const visitantes = visitantesRaw?.map(v => ({
-        ...v,
-        status_geral: (v.resumo as any)?.[0]?.status_geral || (v.resumo as any)?.status_geral
-    }))
-
     if (error) {
-        return <div>Erro ao carregar visitantes: {error.message}</div>
+        return <div>Erro ao carregar visitantes: {(error as any).message}</div>
     }
+
+    // 4. Fetch do resumo de conformidade (separado para evitar erro de relacionamento de view)
+    const visitorIds = visitantesRaw?.map(v => v.id) || []
+    const { data: summaryData } = await supabase
+        .from('v_entidade_conformidade_resumo')
+        .select('parent_id, status_geral')
+        .in('parent_id', visitorIds)
+        .eq('parent_type', 'visitante')
+
+    // 5. Mapear para achatar o status_geral
+    const visitantes = visitantesRaw?.map(v => {
+        const summary = summaryData?.find(s => s.parent_id === v.id)
+        return {
+            ...v,
+            status_geral: summary?.status_geral || null
+        }
+    })
 
     // Fetch empresas para o select do formulário
     const { data: empresas } = await supabase

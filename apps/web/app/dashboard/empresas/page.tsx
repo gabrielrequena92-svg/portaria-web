@@ -14,10 +14,7 @@ export default async function EmpresasPage(props: {
 
     let query = supabase
         .from('empresas')
-        .select(`
-            *,
-            resumo:v_entidade_conformidade_resumo!parent_id(status_geral)
-        `)
+        .select('*')
         .order('created_at', { ascending: false })
 
     if (searchParams.status === 'ativa') {
@@ -36,18 +33,29 @@ export default async function EmpresasPage(props: {
 
     const isAdmin = profile?.role === 'admin'
 
-    // Fetch das empresas (Server Component)
+    // 1. Fetch das empresas
     const { data: companiesRaw, error } = await query
-
-    // Mapear para achatar o status_geral da view
-    const empresas = companiesRaw?.map(c => ({
-        ...c,
-        status_geral: (c.resumo as any)?.[0]?.status_geral || (c.resumo as any)?.status_geral
-    }))
 
     if (error) {
         return <div>Erro ao carregar empresas: {error.message}</div>
     }
+
+    // 2. Fetch do resumo de conformidade (separado para evitar erro de relacionamento de view)
+    const companyIds = companiesRaw?.map(c => c.id) || []
+    const { data: summaryData } = await supabase
+        .from('v_entidade_conformidade_resumo')
+        .select('parent_id, status_geral')
+        .in('parent_id', companyIds)
+        .eq('parent_type', 'empresa')
+
+    // 3. Mapear para achatar o status_geral
+    const empresas = companiesRaw?.map(c => {
+        const summary = summaryData?.find(s => s.parent_id === c.id)
+        return {
+            ...c,
+            status_geral: summary?.status_geral || null
+        }
+    })
 
     return (
         <div className="space-y-6">
