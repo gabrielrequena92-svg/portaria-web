@@ -184,6 +184,24 @@ export default async function LandingPage() {
                 </div>
               </div>
 
+              {/* Novo Card: Gestão de Documentos */}
+              <div className="group relative bg-gradient-to-br from-indigo-50 to-white p-8 rounded-3xl border-2 border-indigo-100 hover:border-indigo-300 transition-all duration-500 hover:shadow-2xl hover:shadow-indigo-100 hover:-translate-y-2">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-200 rounded-full blur-3xl opacity-0 group-hover:opacity-30 transition-opacity duration-500" />
+                <div className="relative space-y-6">
+                  <div className="h-16 w-16 bg-gradient-to-br from-indigo-500 to-violet-500 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-500 shadow-lg">
+                    <CheckCircle2 className="h-8 w-8 text-white" />
+                  </div>
+                  <h3 className="text-2xl font-black tracking-tight text-slate-900">Conformidade Ativa</h3>
+                  <p className="text-slate-600 font-medium leading-relaxed">
+                    Gestão inteligente de documentos para empresas e prestadores (NRs, ASO, CNH). Alertas automáticos 10 dias antes do vencimento.
+                  </p>
+                  <div className="pt-4">
+                    <CheckCircle2 className="h-5 w-5 text-indigo-600 inline mr-2" />
+                    <span className="text-sm font-bold text-slate-700">22 Tipos de Documentos Validáveis</span>
+                  </div>
+                </div>
+              </div>
+
               <div className="group relative bg-gradient-to-br from-purple-50 to-white p-8 rounded-3xl border-2 border-purple-100 hover:border-purple-300 transition-all duration-500 hover:shadow-2xl hover:shadow-purple-100 hover:-translate-y-2">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-purple-200 rounded-full blur-3xl opacity-0 group-hover:opacity-30 transition-opacity duration-500" />
                 <div className="relative space-y-6">
