@@ -34,16 +34,11 @@
 
 ---
 
-## 🐛 Bug Conhecido (Pendente)
+## 🐛 Bugs Resolvidos
 
-*   **Upload falha com erro de Storage**: O upload de arquivos retorna "Erro ao fazer upload para o storage". Causa provável: **políticas de RLS no bucket `documentos` do Supabase Storage não configuradas**. Correção necessária no Supabase Dashboard (Storage → Policies).
-
-    ```sql
-    -- Executar no SQL Editor do Supabase:
-    CREATE POLICY "Upload permitido" ON storage.objects FOR INSERT TO authenticated WITH CHECK (bucket_id = 'documentos');
-    CREATE POLICY "Leitura permitida" ON storage.objects FOR SELECT TO authenticated USING (bucket_id = 'documentos');
-    CREATE POLICY "Exclusão permitida" ON storage.objects FOR DELETE TO authenticated USING (bucket_id = 'documentos');
-    ```
+*   **Upload de Documentos (Erro de Storage)**: Corrigida a falha no envio de arquivos para a aba "Documentação".
+    *   **Causa**: Falta de políticas de segurança (RLS) no bucket `documentos` e inexistência prévia explícita do bucket.
+    *   **Solução**: Executado script SQL (`docs/fix_storage_policies.sql`) no banco para criação do bucket com permissões corretas (INSERT para autenticados, SELECT público, DELETE para autenticados).
 
 ---
 *Versão focada em Conformidade Documental e Gestão de Documentos.*

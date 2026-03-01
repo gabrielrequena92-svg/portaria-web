@@ -38,5 +38,5 @@
     - [x] UI: Aba Documentação no CompanyDialog e VisitorDialog <!-- id: 28 -->
     - [x] Coluna de conformidade nas listagens (badge colorido) <!-- id: 29 -->
     - [x] Correção de layout (coluna única, sem overflow) <!-- id: 30 -->
-    - [ ] BUG: Configurar RLS no Supabase Storage bucket 'documentos' <!-- id: 31 -->
-    - [ ] Teste de upload em produção <!-- id: 32 -->
+    - [x] BUG FIX: RLS criado no Supabase Storage bucket 'documentos' <!-- id: 31 -->
+    - [x] Teste de upload na interface web pelo usuário <!-- id: 32 -->
