@@ -139,3 +139,27 @@ export async function getDocuments(parentId: string) {
 
     return data
 }
+
+export async function getDocumentUrl(filePath: string) {
+    const supabase = await createClient()
+
+    // 1. Tentar gerar URL Assinada (temporária, 1 hora) caso o bucket seja privado
+    const { data: signedData, error: signedError } = await supabase.storage
+        .from('documentos')
+        .createSignedUrl(filePath, 3600) // 1 hora de validade
+
+    if (signedData?.signedUrl) {
+        return { url: signedData.signedUrl }
+    }
+
+    // 2. Se falhar, gerar URL Pública como fallback seguro
+    const { data: publicData } = supabase.storage
+        .from('documentos')
+        .getPublicUrl(filePath)
+
+    if (publicData?.publicUrl) {
+        return { url: publicData.publicUrl }
+    }
+
+    return { error: 'Não foi possível gerar um link para o documento.' }
+}

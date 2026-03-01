@@ -20,7 +20,8 @@ import {
     uploadDocument,
     deleteDocument,
     getDocuments,
-    getDocumentTypes
+    getDocumentTypes,
+    getDocumentUrl
 } from '@/app/dashboard/documentos/actions'
 import { toast } from 'sonner'
 
@@ -135,7 +136,14 @@ export function DocumentSection({ parentId, parentType, entidade }: DocumentSect
                                                     variant="outline"
                                                     size="sm"
                                                     className="h-9 px-3 gap-2 text-slate-600 border-slate-200 hover:bg-slate-50 rounded-xl"
-                                                    onClick={() => window.open(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/documentos/${existingDoc.arquivo_url}`, '_blank')}
+                                                    onClick={async () => {
+                                                        const res = await getDocumentUrl(existingDoc.arquivo_url)
+                                                        if (res.url) {
+                                                            window.open(res.url, '_blank')
+                                                        } else {
+                                                            toast.error(res.error || 'Erro ao abrir o documento.')
+                                                        }
+                                                    }}
                                                 >
                                                     <Eye className="h-4 w-4" />
                                                     <span className="hidden sm:inline">Visualizar</span>
