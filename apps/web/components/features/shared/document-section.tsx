@@ -91,8 +91,8 @@ export function DocumentSection({ parentId, parentType, entidade }: DocumentSect
                         const existingDoc = docs.find(d => d.documento_nome === type.nome)
 
                         return (
-                            <Card key={type.id} className={existingDoc ? 'border-slate-200 bg-slate-50/50' : 'border-dashed border-slate-200'}>
-                                <CardContent className="p-3 flex items-center justify-between gap-3">
+                            <Card key={type.id} className={`transition-all duration-200 ${existingDoc ? 'border-emerald-100 bg-emerald-50/20 shadow-sm' : 'border-dashed border-slate-200 hover:border-slate-300 hover:bg-slate-50/50'}`}>
+                                <CardContent className="p-3 flex items-center justify-between gap-3 min-h-[70px]">
                                     <div className="flex items-center gap-3">
                                         <div className={`p-2 rounded-lg ${existingDoc ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-400'}`}>
                                             <FileText className="h-5 w-5" />
@@ -127,46 +127,51 @@ export function DocumentSection({ parentId, parentType, entidade }: DocumentSect
                                         </div>
                                     </div>
 
-                                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 mt-2 sm:mt-0">
+                                    <div className="flex flex-col items-end gap-1.5 w-[140px] shrink-0">
                                         {existingDoc ? (
                                             <div className="flex items-center gap-1">
                                                 <Button
                                                     variant="ghost"
                                                     size="icon"
-                                                    className="h-8 w-8 text-slate-500 hover:bg-slate-200"
+                                                    className="h-8 w-8 text-slate-400 hover:text-slate-600 hover:bg-slate-200/50 rounded-full"
                                                     onClick={() => window.open(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/documentos/${existingDoc.arquivo_url}`, '_blank')}
+                                                    title="Visualizar"
                                                 >
                                                     <Eye className="h-4 w-4" />
                                                 </Button>
                                                 <Button
                                                     variant="ghost"
                                                     size="icon"
-                                                    className="h-8 w-8 text-red-500 hover:bg-red-50"
+                                                    className="h-8 w-8 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-full"
                                                     onClick={() => handleDelete(existingDoc.id, existingDoc.arquivo_url)}
+                                                    title="Excluir"
                                                 >
                                                     <Trash2 className="h-4 w-4" />
                                                 </Button>
                                             </div>
                                         ) : (
-                                            <div className="flex flex-col gap-2 w-full">
+                                            <div className="flex flex-col gap-1.5 w-full">
                                                 {type.vencimento_tipo !== 'NENHUM' && (
-                                                    <Input
-                                                        type="date"
-                                                        className="h-7 text-[10px] w-full"
-                                                        onChange={(e) => {
-                                                            const fileInput = document.getElementById(`file-${type.id}`) as HTMLInputElement
-                                                            if (fileInput?.files?.[0]) {
-                                                                handleUpload(type.id, fileInput.files[0], e.target.value)
-                                                            }
-                                                        }}
-                                                    />
+                                                    <div className="space-y-1">
+                                                        <span className="text-[9px] uppercase font-bold text-slate-400 px-1">Vencimento</span>
+                                                        <Input
+                                                            type="date"
+                                                            className="h-7 text-[10px] w-full bg-white/50 border-slate-200 focus:border-emerald-500 focus:ring-emerald-500"
+                                                            onChange={(e) => {
+                                                                const fileInput = document.getElementById(`file-${type.id}`) as HTMLInputElement
+                                                                if (fileInput?.files?.[0]) {
+                                                                    handleUpload(type.id, fileInput.files[0], e.target.value)
+                                                                }
+                                                            }}
+                                                        />
+                                                    </div>
                                                 )}
                                                 <Label
                                                     htmlFor={`file-${type.id}`}
-                                                    className={`cursor-pointer inline-flex items-center justify-center rounded-md text-[11px] font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-7 px-2 ${uploading === type.id ? 'opacity-50 pointer-events-none' : ''}`}
+                                                    className={`cursor-pointer inline-flex items-center justify-center rounded-lg text-[10px] font-semibold transition-all border border-slate-200 bg-white hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200 h-7 px-3 shadow-none hover:shadow-sm ${uploading === type.id ? 'opacity-50 pointer-events-none' : ''}`}
                                                 >
-                                                    <Upload className="h-3 w-3 mr-1" />
-                                                    {uploading === type.id ? '...' : 'Subir'}
+                                                    <Upload className="h-3 w-3 mr-1.5" />
+                                                    {uploading === type.id ? 'Subindo...' : 'Enviar'}
                                                 </Label>
                                                 <input
                                                     id={`file-${type.id}`}
@@ -179,7 +184,7 @@ export function DocumentSection({ parentId, parentType, entidade }: DocumentSect
                                                             if (type.vencimento_tipo === 'NENHUM') {
                                                                 handleUpload(type.id, file)
                                                             } else {
-                                                                toast.info('Defina o vencimento.')
+                                                                toast.info('Defina a data de vencimento primeiro.', { duration: 2000 })
                                                             }
                                                         }
                                                     }}
