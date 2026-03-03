@@ -41,6 +41,7 @@ interface Visitor {
 interface CompanyOption {
     id: string
     nome: string
+    tipo_empresa: 'MEI' | 'GERAL'
 }
 
 export function VisitorList({ data, empresas, tiposVisitantes, condominioId, autoOpenNew = false }: { data: Visitor[], empresas: CompanyOption[], tiposVisitantes: { id: string, nome: string }[], condominioId?: string, autoOpenNew?: boolean }) {
