@@ -21,14 +21,15 @@ import {
     deleteDocument,
     getDocuments,
     getDocumentTypes,
-    getDocumentUrl
+    getDocumentUrl,
+    updateDocumentDate
 } from '@/app/dashboard/documentos/actions'
 import { toast } from 'sonner'
 
 interface DocumentSectionProps {
     parentId: string
     parentType: 'empresa' | 'visitante'
-    entidade: 'MEI' | 'GERAL' | 'VISITANTE'
+    entidade: 'MEI' | 'GERAL' | 'VISITANTE' | 'VISITANTE_MEI' | 'VISITANTE_GERAL'
 }
 
 export function DocumentSection({ parentId, parentType, entidade }: DocumentSectionProps) {
@@ -53,14 +54,14 @@ export function DocumentSection({ parentId, parentType, entidade }: DocumentSect
         loadData()
     }, [loadData])
 
-    const handleUpload = async (tipoId: string, file: File, dataVencimento?: string) => {
+    const handleUpload = async (tipoId: string, file: File) => {
         setUploading(tipoId)
         const formData = new FormData()
         formData.append('arquivo', file)
         formData.append('parentId', parentId)
         formData.append('parentType', parentType)
         formData.append('tipoId', tipoId)
-        if (dataVencimento) formData.append('dataVencimento', dataVencimento)
+        // No longer sending dataVencimento immediately
 
         const res = await uploadDocument(formData)
         if (res.success) {
@@ -70,6 +71,22 @@ export function DocumentSection({ parentId, parentType, entidade }: DocumentSect
             toast.error(res.message || 'Erro ao enviar documento')
         }
         setUploading(null)
+    }
+
+    const handleSaveDate = async (docId: string, typeId: string) => {
+        const dateVal = dates[typeId];
+        if (!dateVal) {
+            toast.error('Selecione uma data válida.');
+            return;
+        }
+
+        const res = await updateDocumentDate(docId, dateVal);
+        if (res.success) {
+            toast.success('Vencimento salvo com sucesso!');
+            loadData();
+        } else {
+            toast.error(res.message || 'Erro ao salvar vencimento.');
+        }
     }
 
     const handleDelete = async (docId: string, path: string) => {
@@ -132,48 +149,58 @@ export function DocumentSection({ parentId, parentType, entidade }: DocumentSect
 
                                     <div className="flex items-center gap-3 shrink-0 sm:ml-auto">
                                         {existingDoc ? (
-                                            <div className="flex items-center gap-2">
-                                                <Button
-                                                    variant="outline"
-                                                    size="sm"
-                                                    className="h-9 px-3 gap-2 text-slate-600 border-slate-200 hover:bg-slate-50 rounded-xl"
-                                                    onClick={async () => {
-                                                        const res = await getDocumentUrl(existingDoc.arquivo_url)
-                                                        if (res.url) {
-                                                            window.open(res.url, '_blank')
-                                                        } else {
-                                                            toast.error(res.error || 'Erro ao abrir o documento.')
-                                                        }
-                                                    }}
-                                                >
-                                                    <Eye className="h-4 w-4" />
-                                                    <span className="hidden sm:inline">Visualizar</span>
-                                                </Button>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    className="h-9 w-9 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-xl"
-                                                    onClick={() => handleDelete(existingDoc.id, existingDoc.arquivo_url)}
-                                                    title="Excluir"
-                                                >
-                                                    <Trash2 className="h-4 w-4" />
-                                                </Button>
-                                            </div>
-                                        ) : (
                                             <div className="flex flex-col sm:flex-row items-end sm:items-center gap-3">
-                                                {type.vencimento_tipo !== 'NENHUM' && (
-                                                    <div className="flex flex-col sm:items-end gap-1">
-                                                        <span className="text-[10px] uppercase font-bold text-slate-400 px-1">Vencimento</span>
+                                                {/* Date Input for Already Uploaded Document missing date */}
+                                                {type.vencimento_tipo !== 'NENHUM' && !existingDoc.data_vencimento && (
+                                                    <div className="flex items-center gap-2 bg-slate-50 p-1.5 rounded-xl border border-slate-100">
                                                         <Input
                                                             type="date"
-                                                            className="h-9 text-sm w-full sm:w-40 bg-white border-slate-200 focus:border-emerald-500 focus:ring-emerald-500 rounded-xl"
+                                                            className="h-9 text-sm w-36 bg-white border-slate-200 focus:border-emerald-500 focus:ring-emerald-500 rounded-lg"
                                                             value={dates[type.id] || ''}
                                                             onChange={(e) => {
                                                                 setDates(prev => ({ ...prev, [type.id]: e.target.value }))
                                                             }}
                                                         />
+                                                        <Button
+                                                            size="sm"
+                                                            onClick={() => handleSaveDate(existingDoc.id, type.id)}
+                                                            className="h-9 bg-emerald-600 hover:bg-emerald-700 rounded-lg whitespace-nowrap"
+                                                        >
+                                                            Salvar
+                                                        </Button>
                                                     </div>
                                                 )}
+
+                                                <div className="flex items-center gap-2">
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        className="h-9 px-3 gap-2 text-slate-600 border-slate-200 hover:bg-slate-50 rounded-xl"
+                                                        onClick={async () => {
+                                                            const res = await getDocumentUrl(existingDoc.arquivo_url)
+                                                            if (res.url) {
+                                                                window.open(res.url, '_blank')
+                                                            } else {
+                                                                toast.error(res.error || 'Erro ao abrir o documento.')
+                                                            }
+                                                        }}
+                                                    >
+                                                        <Eye className="h-4 w-4" />
+                                                        <span className="hidden sm:inline">Visualizar</span>
+                                                    </Button>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="h-9 w-9 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-xl"
+                                                        onClick={() => handleDelete(existingDoc.id, existingDoc.arquivo_url)}
+                                                        title="Excluir"
+                                                    >
+                                                        <Trash2 className="h-4 w-4" />
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <div className="flex flex-col sm:flex-row items-end sm:items-center gap-3">
                                                 <div className="flex flex-col sm:items-end gap-1">
                                                     <span className="text-[10px] uppercase font-bold text-slate-400 px-1 opacity-0 hidden sm:block">Ações</span>
                                                     <Label
@@ -192,13 +219,7 @@ export function DocumentSection({ parentId, parentType, entidade }: DocumentSect
                                                             const file = e.target.files?.[0]
                                                             if (!file) return;
 
-                                                            if (type.vencimento_tipo !== 'NENHUM' && !dates[type.id]) {
-                                                                toast.info('Selecione a data de vencimento primeiro.', { duration: 3000 })
-                                                                e.target.value = '' // Clear input
-                                                                return;
-                                                            }
-
-                                                            handleUpload(type.id, file, dates[type.id])
+                                                            handleUpload(type.id, file)
                                                             e.target.value = '' // Clear input
                                                         }}
                                                     />

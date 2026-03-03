@@ -12,7 +12,7 @@ export interface DocumentoTipo {
     vencimento_tipo: string;
 }
 
-export type StatusConformidade = 'valido' | 'alerta' | 'vencido' | 'pendente' | 'sem_documentos' | 'bloqueado';
+export type StatusConformidade = 'valido' | 'alerta' | 'vencido' | 'pendente' | 'sem_documentos' | 'bloqueado' | 'bloqueado_empresa';
 
 export function calcularStatusConformidade(
     documentos: Documento[],

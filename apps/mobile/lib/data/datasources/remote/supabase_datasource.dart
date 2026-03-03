@@ -23,11 +23,10 @@ class SupabaseDatasource {
 
   // --- Visitantes ---
   Future<List<VisitanteModel>> fetchVisitantes({required String condominioId}) async {
-    final response = await _client
-        .from('visitantes')
-        .select()
-        .eq('condominio_id', condominioId)
-        .order('created_at');
+    final response = await _client.rpc(
+      'get_visitantes_mobile_sync',
+      params: {'p_condominio_id': condominioId},
+    );
 
     return (response as List).map((e) => VisitanteModel.fromJson(e)).toList();
   }

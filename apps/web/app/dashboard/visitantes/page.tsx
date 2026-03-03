@@ -16,7 +16,7 @@ export default async function VisitantesPage(props: {
         .from('visitantes')
         .select(`
             *,
-            empresa:empresas(id, nome, status),
+            empresa:empresas(id, nome, status, tipo_empresa),
             tipo_visitante:tipos_visitantes(id, nome),
             condominio:condominios(id)
         `)
@@ -64,14 +64,23 @@ export default async function VisitantesPage(props: {
 
     // 6. Mapear e calcular o status real da documentação
     const visitantes = visitantesRaw?.map((v: any) => {
-        const requiredDocs = docTypes?.filter((t: any) => t.entidade_alvo === 'VISITANTE' || t.entidade_alvo === 'TODOS') || []
+        const isMei = v.empresa?.tipo_empresa === 'MEI'
+        const requiredDocs = docTypes?.filter((t: any) =>
+            t.entidade_alvo === 'VISITANTE' ||
+            t.entidade_alvo === 'TODOS' ||
+            (t.entidade_alvo === 'VISITANTE_GERAL' && !isMei) ||
+            (t.entidade_alvo === 'VISITANTE_MEI' && isMei)
+        ) || []
+
         const myDocs = allDocs?.filter(d => d.parent_id === v.id) || []
 
         let status_geral = calcularStatusConformidade(myDocs, requiredDocs as any)
 
         // Regra Especial de Negócio: Se a empresa pai está bloqueada/inativa ou o próprio visitante está bloqueado, propaga o status
-        if (v.status === 'bloqueado' || v.empresa?.status === 'bloqueada' || v.empresa?.status === 'inativa') {
+        if (v.status === 'bloqueado') {
             status_geral = 'bloqueado'
+        } else if (v.empresa?.status === 'bloqueada' || v.empresa?.status === 'inativa') {
+            status_geral = 'bloqueado_empresa'
         }
 
         return {
@@ -83,7 +92,7 @@ export default async function VisitantesPage(props: {
     // Fetch empresas para o select do formulário
     const { data: empresas } = await supabase
         .from('empresas')
-        .select('id, nome')
+        .select('id, nome, tipo_empresa')
         .eq('status', 'ativa')
         .order('nome')
 

@@ -63,7 +63,7 @@ class _VisitanteCardState extends ConsumerState<VisitanteCard> {
 
   Color get _statusColor {
     if (widget.visitante.status == 'ativo') return Colors.green;
-    if (widget.visitante.status == 'bloqueado') return Colors.red;
+    if (widget.visitante.status.startsWith('bloqueado')) return Colors.red;
     return Colors.grey;
   }
 
@@ -275,16 +275,16 @@ class _VisitanteCardState extends ConsumerState<VisitanteCard> {
                 label: Text(widget.empresaNome),
                 backgroundColor: Colors.grey[100],
               ),
-              // Status Cadastral (Ativo/Bloqueado)
+              // Status Cadastral (Ativo/Bloqueado/etc)
               Chip(
                 avatar: Icon(
-                  widget.visitante.status == 'bloqueado' ? Icons.block : Icons.check_circle,
+                  widget.visitante.status.startsWith('bloqueado') ? Icons.block : Icons.check_circle,
                   size: 16,
                   color: Colors.white,
                 ),
                 label: Text(
-                  widget.visitante.status.toUpperCase(),
-                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                  widget.visitante.status.replaceAll('_', ' ').toUpperCase(),
+                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 11),
                 ),
                 backgroundColor: _statusColor,
               ),

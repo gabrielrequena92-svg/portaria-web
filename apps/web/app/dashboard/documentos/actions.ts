@@ -106,13 +106,18 @@ export async function deleteDocument(documentId: string, filePath: string, paren
     return { success: true }
 }
 
-export async function getDocumentTypes(entidade: 'MEI' | 'GERAL' | 'VISITANTE') {
+export async function getDocumentTypes(entidade: 'MEI' | 'GERAL' | 'VISITANTE' | 'VISITANTE_MEI' | 'VISITANTE_GERAL') {
     const supabase = await createClient()
+
+    let typesToFetch = [entidade, 'TODOS']
+    if (entidade.startsWith('VISITANTE_')) {
+        typesToFetch.push('VISITANTE')
+    }
 
     const { data, error } = await supabase
         .from('documento_tipos')
         .select('*')
-        .or(`entidade_alvo.eq.${entidade},entidade_alvo.eq.TODOS`)
+        .in('entidade_alvo', typesToFetch)
         .order('nome')
 
     if (error) {
@@ -161,4 +166,23 @@ export async function getDocumentUrl(filePath: string) {
     }
 
     return { error: 'Não foi possível gerar um link para o documento.' }
+}
+
+export async function updateDocumentDate(documentId: string, dataVencimento: string) {
+    const supabase = await createClient()
+
+    const { error } = await supabase
+        .from('documentos')
+        .update({ data_vencimento: dataVencimento })
+        .eq('id', documentId)
+
+    if (error) {
+        console.error('Update Date Error:', error)
+        return { success: false, message: 'Erro ao atualizar data de vencimento.' }
+    }
+
+    // Force revalidation of all paths (quick hack for now)
+    revalidatePath('/dashboard/visitantes')
+    revalidatePath('/dashboard/empresas')
+    return { success: true }
 }

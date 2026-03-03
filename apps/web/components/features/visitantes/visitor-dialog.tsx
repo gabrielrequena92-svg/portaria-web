@@ -39,7 +39,7 @@ interface VisitorDialogProps {
         empresa_id?: string | null
         tipo_visitante_id?: string | null
     }
-    empresas: { id: string; nome: string }[]
+    empresas: { id: string; nome: string; tipo_empresa: 'MEI' | 'GERAL' }[]
     tiposVisitantes: { id: string; nome: string }[]
     condominioId?: string
     open?: boolean
@@ -339,7 +339,11 @@ export function VisitorDialog({ visitor, empresas, tiposVisitantes, condominioId
                                 <DocumentSection
                                     parentId={visitor.id}
                                     parentType="visitante"
-                                    entidade="VISITANTE"
+                                    entidade={
+                                        visitor.empresa_id
+                                            ? (empresas.find(e => e.id === visitor.empresa_id)?.tipo_empresa === 'MEI' ? 'VISITANTE_MEI' : 'VISITANTE_GERAL')
+                                            : 'VISITANTE'
+                                    }
                                 />
                             )}
                         </TabsContent>
