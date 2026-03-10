@@ -87,9 +87,10 @@ export function CompanyFilters() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todas as Doc.</SelectItem>
-            <SelectItem value="conforme">Conforme</SelectItem>
+            <SelectItem value="valido">Em dia</SelectItem>
             <SelectItem value="pendente">Pendente</SelectItem>
             <SelectItem value="vencido">Vencido</SelectItem>
+            <SelectItem value="sem_documentos">Sem documentos</SelectItem>
           </SelectContent>
         </Select>
 

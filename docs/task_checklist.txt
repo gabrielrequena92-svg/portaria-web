@@ -31,12 +31,13 @@
     - [x] Validação de Segurança e Performance (Sprint 2 OK) <!-- id: 21 -->
     - [x] Implementação de Auditoria e Logs <!-- id: 22 -->
     - [x] Exportação de Relatórios (PDF/CSV) <!-- id: 23 -->
-- [/] Gestão de Documentos & Conformidade (v2.1.0) <!-- id: 24 -->
-    - [x] Tipos de documentos configurados (22 tipos: MEI, Geral, Visitantes) <!-- id: 25 -->
+- [x] Gestão de Documentos & Conformidade (v2.1.0) <!-- id: 24 -->
+    - [x] Tipos de documentos configurados (MEI, Geral, Visitantes) <!-- id: 25 -->
     - [x] Tabelas: documento_tipos, documentos, views de conformidade <!-- id: 26 -->
     - [x] Server actions: uploadDocument, deleteDocument, getDocuments <!-- id: 27 -->
     - [x] UI: Aba Documentação no CompanyDialog e VisitorDialog <!-- id: 28 -->
     - [x] Coluna de conformidade nas listagens (badge colorido) <!-- id: 29 -->
-    - [x] Correção de layout (coluna única, sem overflow) <!-- id: 30 -->
-    - [x] BUG FIX: RLS criado no Supabase Storage bucket 'documentos' <!-- id: 31 -->
-    - [x] Teste de upload na interface web pelo usuário <!-- id: 32 -->
+    - [x] **Ficha de EPI** e Regras de Isenção por Categoria (Prestadores vs Outros)
+    - [x] **Filtros Avançados** (Nome, Empresa, Status, Documentação)
+    - [x] **Drag-and-Drop** no upload de documentos
+    - [x] Deploy no Vercel realizado e validado

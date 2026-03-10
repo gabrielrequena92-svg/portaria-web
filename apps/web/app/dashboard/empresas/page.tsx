@@ -17,7 +17,7 @@ export default async function EmpresasPage(props: {
     let query = supabase
         .from('empresas')
         .select('*')
-        .order('created_at', { ascending: false })
+        .order('nome', { ascending: true })
 
     // Filtros de Nível de Banco de Dados
     if (searchParams.status && searchParams.status !== 'all') {

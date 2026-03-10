@@ -21,7 +21,7 @@ export default async function VisitantesPage(props: {
             tipo_visitante:tipos_visitantes(id, nome, exige_documentacao),
             condominio:condominios(id)
         `)
-        .order('created_at', { ascending: false })
+        .order('nome', { ascending: true })
 
     // 2. Apply Database-level Filters
     const search = searchParams.search

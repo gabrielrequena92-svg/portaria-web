@@ -115,7 +115,7 @@ export function VisitorFilters({ empresas }: VisitorFiltersProps) {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todas as Doc.</SelectItem>
-              <SelectItem value="conforme">Conforme</SelectItem>
+              <SelectItem value="valido">Em dia</SelectItem>
               <SelectItem value="pendente">Pendente</SelectItem>
               <SelectItem value="vencido">Vencido</SelectItem>
             </SelectContent>

@@ -64,10 +64,13 @@ Este documento serve como a **memória de longo prazo** para o agente (Antigravi
 *   [x] **Regra de Negócio (DB):** Trigger `on_empresa_status_change` implementada para bloquear visitantes automaticamente quando a empresa é bloqueada.
 *   [x] **UI/UX:** Refinamento visual (Tema Verde/Custom) concluído.
 *   [x] **Relatórios:** Módulo de relatórios avançados implementado.
-*   [x] **Gestão de Documentos:**
+*   [x] **Gestão de Documentos & Filtros Avançados:**
     *   [x] Infraestrutura de Storage (Bucket `documentos`) e Tabelas SQL.
-    *   [x] Definição de 22 tipos de documentos com regras de validade.
-    *   [x] Interface de Upload/Gestão integrada em Empresas e Visitantes.
+    *   [x] Definição de tipos de documentos com regras de validade.
+    *   [x] **Ficha de EPI:** Adicionada para prestadores de serviço (sem cobrança de validade).
+    *   [x] **Regras de Negócio por Categoria:** Isenção automática de documentos para Visitantes, Fornecedores e Entregas.
+    *   [x] **Filtros Avançados:** Busca por nome, status e empresa com persistência via URL (searchParams).
+    *   [x] **UX Enhancement:** Upload via Arrastar e Soltar (Drag-and-Drop) integrado.
     *   [x] Sistema de Alertas (10 dias) e visualização de conformidade nas listagens.
 *   [x] **Deploy:** Sistema operando no Vercel.
 *   [x] **Debugging Crítico:**
