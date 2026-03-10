@@ -18,7 +18,7 @@ export default async function VisitantesPage(props: {
         .select(`
             *,
             empresa:empresas(id, nome, status, tipo_empresa),
-            tipo_visitante:tipos_visitantes(id, nome),
+            tipo_visitante:tipos_visitantes(id, nome, exige_documentacao),
             condominio:condominios(id)
         `)
         .order('created_at', { ascending: false })
@@ -61,12 +61,15 @@ export default async function VisitantesPage(props: {
     // 6. Mapear e calcular o status real da documentação
     let visitantes = visitantesRaw?.map((v: any) => {
         const isMei = v.empresa?.tipo_empresa === 'MEI'
-        const requiredDocs = docTypes?.filter((t: any) =>
+        const exigeDocs = v.tipo_visitante?.exige_documentacao ?? true // Fallback para true se não definido ainda
+
+        // Se a categoria NÃO exige documentação, a lista de docs obrigatórios é vazia
+        const requiredDocs = !exigeDocs ? [] : (docTypes?.filter((t: any) =>
             t.entidade_alvo === 'VISITANTE' ||
             t.entidade_alvo === 'TODOS' ||
             (t.entidade_alvo === 'VISITANTE_GERAL' && !isMei) ||
             (t.entidade_alvo === 'VISITANTE_MEI' && isMei)
-        ) || []
+        ) || [])
 
         const myDocs = allDocs?.filter(d => d.parent_id === v.id) || []
 
