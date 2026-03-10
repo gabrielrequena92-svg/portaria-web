@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { VisitorList } from '@/components/features/visitantes/visitor-list'
 import { VisitorDialog } from '@/components/features/visitantes/visitor-dialog'
+import { VisitorFilters } from '@/components/features/visitantes/visitor-filters'
 import { calcularStatusConformidade } from '@/lib/utils/conformity'
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>
@@ -22,39 +23,34 @@ export default async function VisitantesPage(props: {
         `)
         .order('created_at', { ascending: false })
 
-    // 2. Apply Filters based on Search Params
+    // 2. Apply Database-level Filters
     const search = searchParams.search
     const status = searchParams.status
+    const empresa_id = searchParams.empresa_id
 
     if (search && typeof search === 'string') {
-        // Filter by name or CPF (using ILIKE for case-insensitive search)
         query = query.or(`nome.ilike.%${search}%,cpf.ilike.%${search}%`)
     }
 
-    if (status && typeof status === 'string') {
-        if (status === 'bloqueado') {
-            query = query.eq('status', 'bloqueado')
-        } else if (status === 'no_local') {
-            // "No Local" means status is 'ativo' (checked in but not checked out)
-            query = query.eq('status', 'ativo')
-        }
+    if (status && typeof status === 'string' && status !== 'all') {
+        query = query.eq('status', status)
+    }
+
+    if (empresa_id && typeof empresa_id === 'string' && empresa_id !== 'all') {
+        query = query.eq('empresa_id', empresa_id)
     }
 
     // 3. Fetch dos visitantes
     const { data: visitantesRaw, error } = await query
 
     if (error) {
-        return <div>Erro ao carregar visitantes: {(error as any).message}</div>
+        return <div className="p-4 bg-red-50 text-red-600 rounded-lg border border-red-100">Erro ao carregar visitantes: {(error as any).message}</div>
     }
 
     // 4. Fetch de todos os tipos de documentos configurados
     const { data: docTypes } = await supabase.from('documento_tipos').select('id, obrigatorio, entidade_alvo, vencimento_tipo')
 
-    if (error) {
-        return <div>Erro ao carregar visitantes: {(error as any).message}</div>
-    }
-
-    // 5. Fetch dos documentos para esses visitantes (relacionamento polimórfico manual)
+    // 5. Fetch dos documentos para esses visitantes
     const visitorIds = visitantesRaw?.map(v => v.id) || []
     const { data: allDocs } = await supabase
         .from('documentos')
@@ -63,7 +59,7 @@ export default async function VisitantesPage(props: {
         .eq('parent_type', 'visitante')
 
     // 6. Mapear e calcular o status real da documentação
-    const visitantes = visitantesRaw?.map((v: any) => {
+    let visitantes = visitantesRaw?.map((v: any) => {
         const isMei = v.empresa?.tipo_empresa === 'MEI'
         const requiredDocs = docTypes?.filter((t: any) =>
             t.entidade_alvo === 'VISITANTE' ||
@@ -76,7 +72,6 @@ export default async function VisitantesPage(props: {
 
         let status_geral = calcularStatusConformidade(myDocs, requiredDocs as any)
 
-        // Regra Especial de Negócio: Se a empresa pai está bloqueada/inativa ou o próprio visitante está bloqueado, propaga o status
         if (v.status === 'bloqueado') {
             status_geral = 'bloqueado'
         } else if (v.empresa?.status === 'bloqueada' || v.empresa?.status === 'inativa') {
@@ -87,10 +82,15 @@ export default async function VisitantesPage(props: {
             ...v,
             status_geral
         }
-    })
+    }) || []
 
-    // Fetch empresas para o select do formulário
-    const { data: empresas } = await supabase
+    // 7. Filtro por Status de Documentação (em memória)
+    if (searchParams.doc_status && searchParams.doc_status !== 'all') {
+        visitantes = visitantes.filter((v: any) => v.status_geral === searchParams.doc_status)
+    }
+
+    // Fetch todas as empresas ativas para o filtro e formulário
+    const { data: allEmpresas } = await supabase
         .from('empresas')
         .select('id, nome, tipo_empresa')
         .eq('status', 'ativa')
@@ -102,7 +102,7 @@ export default async function VisitantesPage(props: {
         .select('id, nome')
         .order('nome')
 
-    // Pegar o condomínio do usuário logado para o QR Code e filtros
+    // Pegar o condomínio do usuário logado
     const { data: { user } } = await supabase.auth.getUser()
     const { data: profile } = await supabase
         .from('profiles')
@@ -112,33 +112,27 @@ export default async function VisitantesPage(props: {
 
     const currentCondominioId = profile?.condominio_id || 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'
 
-    if (error) {
-        return <div>Erro ao carregar visitantes: {(error as any).message}</div>
-    }
-
     const shouldOpenNew = searchParams.action === 'new'
 
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between">
                 <div>
-                    <h2 className="text-3xl font-bold tracking-tight text-slate-900">Visitantes</h2>
-                    {search && (
-                        <p className="text-slate-500 text-sm mt-1">
-                            Exibindo resultados para <span className="font-bold text-slate-800">"{search}"</span>
-                        </p>
-                    )}
+                    <h2 className="text-3xl font-bold tracking-tight text-slate-900">Funcionários</h2>
+                    <p className="text-slate-500 text-sm mt-1">Gerencie os funcionários e visitantes do condomínio.</p>
                 </div>
                 <VisitorDialog
-                    empresas={empresas || []}
+                    empresas={allEmpresas || []}
                     tiposVisitantes={tiposVisitantes || []}
                     condominioId={currentCondominioId}
                 />
             </div>
 
+            <VisitorFilters empresas={allEmpresas || []} />
+
             <VisitorList
-                data={visitantes || []}
-                empresas={empresas || []}
+                data={visitantes}
+                empresas={allEmpresas || []}
                 tiposVisitantes={tiposVisitantes || []}
                 autoOpenNew={shouldOpenNew}
                 condominioId={currentCondominioId}
