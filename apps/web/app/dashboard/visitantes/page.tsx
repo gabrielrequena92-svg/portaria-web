@@ -17,7 +17,8 @@ export default async function VisitantesPage(props: {
         .from('visitantes')
         .select(`
             *,
-            empresa:empresas(id, nome, status, tipo_empresa),
+            empresa:empresa_id(id, nome, status, tipo_empresa),
+            subcontratada_empresa:subcontratada_empresa_id(id, nome),
             tipo_visitante:tipos_visitantes(id, nome, exige_documentacao),
             condominio:condominios(id)
         `)
@@ -25,7 +26,7 @@ export default async function VisitantesPage(props: {
 
     // 2. Apply Database-level Filters
     const search = searchParams.search
-    const status = searchParams.status
+    const status = searchParams.status ?? 'ativo'
     const empresa_id = searchParams.empresa_id
 
     if (search && typeof search === 'string') {
@@ -37,7 +38,7 @@ export default async function VisitantesPage(props: {
     }
 
     if (empresa_id && typeof empresa_id === 'string' && empresa_id !== 'all') {
-        query = query.eq('empresa_id', empresa_id)
+        query = query.or(`empresa_id.eq.${empresa_id},subcontratada_empresa_id.eq.${empresa_id}`)
     }
 
     // 3. Fetch dos visitantes

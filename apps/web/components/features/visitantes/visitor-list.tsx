@@ -31,6 +31,8 @@ interface Visitor {
     status: 'ativo' | 'bloqueado' | 'inativo'
     empresa?: { nome: string } | null
     empresa_id?: string | null
+    subcontratada_empresa?: { nome: string } | null
+    subcontratada_empresa_id?: string | null
     tipo_visitante?: { nome: string } | null
     tipo_visitante_id?: string | null
     condominio_id: string
@@ -103,8 +105,24 @@ export function VisitorList({ data, empresas, tiposVisitantes, condominioId, aut
                                 <TableCell className="text-slate-500 font-mono text-xs">{visitor.cpf}</TableCell>
                                 <TableCell>
                                     <div className="flex flex-col gap-1">
-                                        <span className="text-slate-600 font-medium text-sm">
-                                            {visitor.empresa?.nome || <span className="text-slate-400 italic text-xs">Sem empresa</span>}
+                                        <span className="flex items-center gap-2">
+                                            <span className="text-slate-600 font-medium text-sm truncate max-w-[200px]" title={visitor.empresa?.nome || 'Sem empresa'}>
+                                                {visitor.empresa?.nome || <span className="text-slate-400 italic text-xs">Sem empresa</span>}
+                                            </span>
+                                            {visitor.subcontratada_empresa?.nome && (
+                                                <div className="group relative flex items-center">
+                                                    <Badge variant="outline" className="text-[10px] h-5 cursor-help bg-slate-50 border-slate-200 px-1.5 py-0 font-normal text-slate-500 hover:bg-slate-100 flex gap-1">
+                                                        <span>Sub</span>
+                                                    </Badge>
+                                                    {/* Custom Tooltip */}
+                                                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block w-max max-w-[250px] bg-slate-800 text-white text-xs p-2 rounded-xl shadow-lg z-50 animate-in fade-in zoom-in-95 duration-200">
+                                                        <span className="font-semibold text-slate-300 block mb-1">Empresa Contratante:</span>
+                                                        <span className="whitespace-normal leading-tight">{visitor.subcontratada_empresa.nome}</span>
+                                                        {/* Tooltip Arrow */}
+                                                        <div className="absolute top-full left-1/2 -translate-x-1/2 border-[5px] border-transparent border-t-slate-800"></div>
+                                                    </div>
+                                                </div>
+                                            )}
                                         </span>
                                         <span className="text-slate-400 text-xs">
                                             {visitor.tipo_visitante?.nome || 'Visitante'}

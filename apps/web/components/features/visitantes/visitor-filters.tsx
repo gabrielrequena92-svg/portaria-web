@@ -92,7 +92,7 @@ export function VisitorFilters({ empresas }: VisitorFiltersProps) {
           </Select>
 
           <Select
-            value={searchParams.get('status') || 'all'}
+            value={searchParams.get('status') || 'ativo'}
             onValueChange={(v) => handleFilter('status', v)}
           >
             <SelectTrigger className="w-[160px] bg-slate-50 border-slate-200">

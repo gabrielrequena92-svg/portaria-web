@@ -64,7 +64,7 @@ export function CompanyFilters() {
 
       <div className="flex flex-wrap gap-3 items-center">
         <Select
-          value={searchParams.get('status') || 'all'}
+          value={searchParams.get('status') || 'ativa'}
           onValueChange={(v) => handleFilter('status', v)}
         >
           <SelectTrigger className="w-[160px] bg-slate-50 border-slate-200">

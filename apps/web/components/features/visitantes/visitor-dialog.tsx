@@ -37,6 +37,7 @@ interface VisitorDialogProps {
         foto_url: string | null
         status: 'ativo' | 'bloqueado' | 'inativo'
         empresa_id?: string | null
+        subcontratada_empresa_id?: string | null
         tipo_visitante_id?: string | null
     }
     empresas: { id: string; nome: string; tipo_empresa: 'MEI' | 'GERAL' }[]
@@ -61,6 +62,7 @@ export function VisitorDialog({ visitor, empresas, tiposVisitantes, condominioId
     const [registeredId, setRegisteredId] = useState<string | null>(null)
     const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({})
     const [generalError, setGeneralError] = useState<string | null>(null)
+    const [selectedTipoVisitante, setSelectedTipoVisitante] = useState<string | undefined>(visitor?.tipo_visitante_id || tiposVisitantes[0]?.id)
 
     const isControlled = open !== undefined
     const isOpen = isControlled ? open : internalOpen
@@ -282,7 +284,7 @@ export function VisitorDialog({ visitor, empresas, tiposVisitantes, condominioId
                                     <div className="grid grid-cols-2 gap-4">
                                         <div className="grid gap-2">
                                             <Label htmlFor="tipo_visitante_id">Categoria</Label>
-                                            <Select name="tipo_visitante_id" defaultValue={visitor?.tipo_visitante_id || tiposVisitantes[0]?.id}>
+                                            <Select name="tipo_visitante_id" value={selectedTipoVisitante} onValueChange={setSelectedTipoVisitante}>
                                                 <SelectTrigger>
                                                     <SelectValue placeholder="Selecione" />
                                                 </SelectTrigger>
@@ -309,6 +311,23 @@ export function VisitorDialog({ visitor, empresas, tiposVisitantes, condominioId
                                                 </SelectContent>
                                             </Select>
                                         </div>
+                                    </div>
+
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="subcontratada_empresa_id">Empresa Contratante (Opcional)</Label>
+                                        <Select name="subcontratada_empresa_id" defaultValue={visitor?.subcontratada_empresa_id || 'none'}>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Selecione a empresa contratante..." />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="none">Nenhuma</SelectItem>
+                                                {empresas.map(emp => (
+                                                    <SelectItem key={emp.id} value={emp.id}>
+                                                        {emp.nome}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
                                     </div>
 
                                     <div className="grid gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100">

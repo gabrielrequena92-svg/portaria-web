@@ -20,8 +20,9 @@ export default async function EmpresasPage(props: {
         .order('nome', { ascending: true })
 
     // Filtros de Nível de Banco de Dados
-    if (searchParams.status && searchParams.status !== 'all') {
-        query = query.eq('status', searchParams.status as string)
+    const status = searchParams.status ?? 'ativa'
+    if (status && status !== 'all') {
+        query = query.eq('status', status as string)
     }
 
     if (searchParams.nome && typeof searchParams.nome === 'string') {
