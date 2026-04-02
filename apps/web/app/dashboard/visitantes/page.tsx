@@ -18,7 +18,7 @@ export default async function VisitantesPage(props: {
         .select(`
             *,
             empresa:empresa_id(id, nome, status, tipo_empresa),
-            subcontratada_empresa:subcontratada_empresa_id(id, nome),
+            subcontratada_empresa:subcontratada_empresa_id(id, nome, tipo_empresa),
             tipo_visitante:tipos_visitantes(id, nome, exige_documentacao),
             condominio:condominios(id)
         `)
@@ -61,7 +61,7 @@ export default async function VisitantesPage(props: {
 
     // 6. Mapear e calcular o status real da documentação
     let visitantes = visitantesRaw?.map((v: any) => {
-        const isMei = v.empresa?.tipo_empresa === 'MEI'
+        const isMei = v.empresa?.tipo_empresa === 'MEI' || v.subcontratada_empresa?.tipo_empresa === 'MEI'
         const exigeDocs = v.tipo_visitante?.exige_documentacao ?? true // Fallback para true se não definido ainda
 
         // Se a categoria NÃO exige documentação, a lista de docs obrigatórios é vazia

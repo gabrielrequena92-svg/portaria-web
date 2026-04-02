@@ -111,11 +111,18 @@ export default async function AuditoriaPage() {
         const visitantesDaEmpresa = visitantes.filter(v => v.empresa_id === emp.id || v.subcontratada_empresa_id === emp.id)
         
         const visitantesComPendencia: VisitantePendencia[] = visitantesDaEmpresa.reduce((acc: VisitantePendencia[], visit: any) => {
-            // O tipo empresa_base do visitante depende de ser MEI ou não. O DB só linkou a empresa principal, 
-            // mas usaremos a info da propria empresa 'emp' sendo iterada, 
-            // ou pode ser avaliado pela empresa originária. Por segurança, se ele é subcontratado mas foi trazido por MEI, tratamos como GERAL a priori, ou pegamos a flag do tipo visitante.
-            // Para simplificar, passamos o tipo da empresa 'emp'. 
-            const pendenciasVisit = getInconformidades(visit.id, 'visitante', emp.tipo_empresa as 'MEI'|'GERAL', visit.tipo_visitante?.exige_documentacao)
+            // O tipo de documentação do visitante depende se ele é MEI ou GERAL.
+            // Verificamos tanto a empresa principal quanto a subcontratada vinculada ao visitante.
+            const empVinculada = empresas.find(e => e.id === visit.empresa_id)
+            const subVinculada = empresas.find(e => e.id === visit.subcontratada_empresa_id)
+            const visitorIsMei = empVinculada?.tipo_empresa === 'MEI' || subVinculada?.tipo_empresa === 'MEI'
+
+            const pendenciasVisit = getInconformidades(
+                visit.id, 
+                'visitante', 
+                (visitorIsMei ? 'MEI' : 'GERAL'), 
+                visit.tipo_visitante?.exige_documentacao
+            )
             
             if (pendenciasVisit.length > 0) {
                 acc.push({
