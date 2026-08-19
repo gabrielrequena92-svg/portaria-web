@@ -112,6 +112,7 @@ export function DashboardLayoutClient({ children, isAdmin, userEmail, alerts = [
                 {isAdmin && (
                     <>
                         <NavItem href="/dashboard/auditoria" icon={FileText} label="Auditoria" />
+                        <NavItem href="/dashboard/relatorio-organizacao" icon={FileText} label="Relatório Org." />
                         <NavItem href="/dashboard/configuracoes" icon={Settings} label="Configurações" />
                     </>
                 )}

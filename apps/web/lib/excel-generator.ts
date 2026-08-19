@@ -1,0 +1,277 @@
+import ExcelJS from 'exceljs';
+
+export interface ReportPhoto {
+  id: string;
+  dataUrl: string; // Base64 data URL or blob URL
+  descricao: string;
+  originalName?: string;
+}
+
+export interface ReportData {
+  obraNome: string;
+  obraCodigo: string;
+  endereco: string;
+  dataRef: string;
+  engenheiro: string;
+  coordenador: string;
+  logoObra: string | null;
+}
+
+// Converte URL para base64 com segurança
+async function urlToBase64(url: string): Promise<string> {
+  if (url.startsWith('data:')) {
+    return url;
+  }
+  const response = await fetch(url);
+  const blob = await response.blob();
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result as string);
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+}
+
+// Extrai ou calcula a tag de semana (ex: W34)
+function extractWeekTag(dataRef: string): string {
+  const match = dataRef.match(/W\d{1,2}/i);
+  if (match) {
+    return match[0].toUpperCase();
+  }
+  const now = new Date();
+  const d = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
+  const dayNum = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  const weekNo = Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
+  return `W${String(weekNo).padStart(2, '0')}`;
+}
+
+// Mesclagens oficiais do modelo Relatorio_Modelo_OK.xlsx
+const OFFICIAL_MERGES = [
+  'A8:AC8',
+  'E10:Z10',
+  'B12:AD12',
+  'B30:O31',
+  'Q30:AD31',
+  'B32:O33',
+  'Q32:AD33',
+  'B34:O34',
+  'Q34:AD34',
+  'B35:O35',
+  'Q35:AD35',
+  'B36:O36',
+  'Q36:AD36',
+  'B37:O37',
+  'Q37:AD37'
+];
+
+export async function generateOfficialExcel(data: ReportData, photos: ReportPhoto[]) {
+  // 1. Baixar o arquivo template original e os logos oficiais
+  const [templateResp, logo1Resp, logo2Resp] = await Promise.all([
+    fetch('/Relatorio_Modelo_OK.xlsx'),
+    fetch('/template_assets/image1.png'),
+    fetch('/template_assets/image2.png')
+  ]);
+
+  if (!templateResp.ok) {
+    throw new Error('Não foi possível carregar o modelo Relatorio_Modelo_OK.xlsx');
+  }
+
+  const templateArrayBuffer = await templateResp.arrayBuffer();
+  const logo1ArrayBuffer = logo1Resp.ok ? await logo1Resp.arrayBuffer() : null;
+  const logo2ArrayBuffer = logo2Resp.ok ? await logo2Resp.arrayBuffer() : null;
+
+  const totalPhotos = photos.length;
+  const numPages = Math.ceil(totalPhotos / 2) || 1;
+
+  // 2. Carregar o Workbook base
+  const workbook = new ExcelJS.Workbook();
+  await workbook.xlsx.load(templateArrayBuffer);
+
+  const templateSheet = workbook.worksheets[0];
+  templateSheet.name = 'Relatorio_P1';
+
+  // Registrar Logos Fixos no Workbook (usados para as abas 2 em diante)
+  let logo1Id: number | null = null;
+  let logo2Id: number | null = null;
+
+  if (logo1ArrayBuffer) {
+    logo1Id = workbook.addImage({
+      buffer: logo1ArrayBuffer,
+      extension: 'png',
+    });
+  }
+
+  if (logo2ArrayBuffer) {
+    logo2Id = workbook.addImage({
+      buffer: logo2ArrayBuffer,
+      extension: 'png',
+    });
+  }
+
+  // Obra Logo (se houver)
+  let logoObraId: number | null = null;
+  if (data.logoObra) {
+    try {
+      const obraLogoBase64 = await urlToBase64(data.logoObra);
+      logoObraId = workbook.addImage({
+        base64: obraLogoBase64,
+        extension: 'png',
+      });
+    } catch (e) {
+      console.warn('Erro ao processar logo da obra:', e);
+    }
+  }
+
+  // 3. Processar Cada Página / Aba
+  for (let i = 0; i < numPages; i++) {
+    let sheet = templateSheet;
+
+    if (i > 0) {
+      // Criar nova aba
+      const newSheet = workbook.addWorksheet(`Relatorio_P${i + 1}`);
+
+      // Replicar rigorosamente Visualização (ShowGridLines=false, Zoom, PageBreakPreview)
+      newSheet.views = JSON.parse(JSON.stringify(templateSheet.views || []));
+
+      // Replicar Configuração de Impressão (PageSetup, Margens, Orientação Paisagem, Área de Impressão)
+      newSheet.pageSetup = JSON.parse(JSON.stringify(templateSheet.pageSetup || {}));
+
+      // Replicar Propriedades da Planilha (Cores de Aba, Altura Padrão)
+      newSheet.properties = JSON.parse(JSON.stringify(templateSheet.properties || {}));
+
+      // Copiar larguras e estilos das colunas A até AE (1 a 35)
+      for (let c = 1; c <= 35; c++) {
+        const srcCol = templateSheet.getColumn(c);
+        const destCol = newSheet.getColumn(c);
+        destCol.width = srcCol.width;
+        if (srcCol.style) {
+          destCol.style = JSON.parse(JSON.stringify(srcCol.style));
+        }
+      }
+
+      // Copiar todas as linhas, alturas e estilos de cada célula (1 a 40)
+      for (let r = 1; r <= 40; r++) {
+        const srcRow = templateSheet.getRow(r);
+        const destRow = newSheet.getRow(r);
+        destRow.height = srcRow.height;
+
+        for (let c = 1; c <= 35; c++) {
+          const srcCell = srcRow.getCell(c);
+          const destCell = destRow.getCell(c);
+
+          if (srcCell.value !== null && srcCell.value !== undefined) {
+            destCell.value = srcCell.value;
+          }
+          if (srcCell.style) {
+            destCell.style = JSON.parse(JSON.stringify(srcCell.style));
+          }
+        }
+      }
+
+      // Aplicar todas as mesclagens oficiais idênticas
+      OFFICIAL_MERGES.forEach((range) => {
+        try {
+          newSheet.mergeCells(range);
+        } catch (e) {
+          // Ignora
+        }
+      });
+
+      // Inserir Logos Fixos APENAS na aba 2 em diante (a aba 1 já tem os logos embutidos no modelo)
+      if (logo1Id !== null) {
+        try {
+          newSheet.addImage(logo1Id, 'F4:L6');
+        } catch (e) {
+          console.warn('Erro ao inserir logo 1:', e);
+        }
+      }
+
+      if (logo2Id !== null) {
+        try {
+          newSheet.addImage(logo2Id, 'T1:Y7');
+        } catch (e) {
+          console.warn('Erro ao inserir logo 2:', e);
+        }
+      }
+
+      sheet = newSheet;
+    }
+
+    // Inserir Logo da Obra estritamente no intervalo O2:Q6
+    if (logoObraId !== null) {
+      try {
+        sheet.addImage(logoObraId, 'O2:Q6');
+      } catch (e) {
+        console.warn('Erro ao inserir logo da obra em O2:Q6:', e);
+      }
+    }
+
+    // --- Preencher Textos Principais ---
+    sheet.getCell('A8').value = '       RELATÓRIO FOTOGRÁFICO ORGANIZAÇÃO ARRUMAÇÃO E LIMPEZA DA OBRA';
+    sheet.getCell('E10').value = data.dataRef;
+    sheet.getCell('B12').value = `Obra: ${data.obraNome.toUpperCase()}`;
+
+    // --- Preencher Rodapé ---
+    const footerText = `Obra: ${data.obraNome.toUpperCase()} - Engenheiro Resp.: ${data.engenheiro || 'Jacqueline Correia'}\nCoordenador Resp.: ${data.coordenador || 'Guilherme Quadros'}`;
+    sheet.getCell('B30').value = footerText;
+    sheet.getCell('Q30').value = footerText;
+
+    // --- Inserir Foto 1 (Esquerda: B14:O29) ---
+    const p1Index = i * 2;
+    if (p1Index < totalPhotos) {
+      const p1 = photos[p1Index];
+      sheet.getCell('B32').value = 'DESCRIÇÃO';
+      sheet.getCell('B34').value = `Foto ${String(p1Index + 1).padStart(2, '0')}:`;
+      sheet.getCell('B35').value = p1.descricao || '';
+
+      try {
+        const p1Base64 = await urlToBase64(p1.dataUrl);
+        const imgId1 = workbook.addImage({
+          base64: p1Base64,
+          extension: 'jpeg',
+        });
+        sheet.addImage(imgId1, 'B14:O29');
+      } catch (e) {
+        console.error('Erro ao adicionar foto 1 na planilha:', e);
+      }
+    }
+
+    // --- Inserir Foto 2 (Direita: Q14:AD29) ---
+    const p2Index = i * 2 + 1;
+    if (p2Index < totalPhotos) {
+      const p2 = photos[p2Index];
+      sheet.getCell('Q32').value = 'DESCRIÇÃO';
+      sheet.getCell('Q34').value = `Foto ${String(p2Index + 1).padStart(2, '0')}:`;
+      sheet.getCell('Q35').value = p2.descricao || '';
+
+      try {
+        const p2Base64 = await urlToBase64(p2.dataUrl);
+        const imgId2 = workbook.addImage({
+          base64: p2Base64,
+          extension: 'jpeg',
+        });
+        sheet.addImage(imgId2, 'Q14:AD29');
+      } catch (e) {
+        console.error('Erro ao adicionar foto 2 na planilha:', e);
+      }
+    }
+  }
+
+  // 4. Gerar Buffer e Baixar Arquivo com a identificação da semana
+  const buffer = await workbook.xlsx.writeBuffer();
+  const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  const downloadUrl = window.URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = downloadUrl;
+  
+  const cleanName = data.obraNome.replace(/\s+/g, '_') || 'Relatorio';
+  const weekTag = extractWeekTag(data.dataRef);
+  a.download = `Relatorio_${cleanName}_${weekTag}.xlsx`;
+  
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  window.URL.revokeObjectURL(downloadUrl);
+}
