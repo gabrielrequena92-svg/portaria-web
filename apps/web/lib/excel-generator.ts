@@ -17,10 +17,27 @@ export interface ReportData {
   logoObra: string | null;
 }
 
-// Converte qualquer URL (blob, http, data URL) para ArrayBuffer seguro
-async function urlToArrayBuffer(url: string): Promise<ArrayBuffer> {
+// Converte qualquer URL (blob, http, data URL) para ArrayBuffer e extensão corretos
+async function urlToArrayBuffer(url: string): Promise<{ buffer: ArrayBuffer; extension: 'png' | 'jpeg' }> {
+  if (url.startsWith('data:')) {
+    const mimeMatch = url.match(/^data:image\/([a-zA-Z0-9+]+);base64,/);
+    const mimeExt = mimeMatch ? mimeMatch[1].toLowerCase() : '';
+    const extension: 'png' | 'jpeg' = mimeExt.includes('png') ? 'png' : 'jpeg';
+    
+    const base64Data = url.replace(/^data:image\/[a-zA-Z0-9+]+;base64,/, '');
+    const binaryString = atob(base64Data);
+    const bytes = new Uint8Array(binaryString.length);
+    for (let i = 0; i < binaryString.length; i++) {
+      bytes[i] = binaryString.charCodeAt(i);
+    }
+    return { buffer: bytes.buffer as ArrayBuffer, extension };
+  }
+
   const response = await fetch(url);
-  return await response.arrayBuffer();
+  const blob = await response.blob();
+  const arrayBuffer = await blob.arrayBuffer();
+  const extension: 'png' | 'jpeg' = blob.type.includes('png') ? 'png' : 'jpeg';
+  return { buffer: arrayBuffer, extension };
 }
 
 // Extrai ou calcula a tag de semana (ex: W34)
@@ -101,17 +118,17 @@ export async function generateOfficialExcel(data: ReportData, photos: ReportPhot
     });
   }
 
-  // Obra Logo (se houver)
+  // Obra Logo (inserir apenas se houver imagem válida carregada)
   let logoObraId: number | null = null;
-  if (data.logoObra) {
+  if (data.logoObra && data.logoObra.trim().length > 0) {
     try {
-      const obraLogoBuffer = await urlToArrayBuffer(data.logoObra);
+      const { buffer: obraBuffer, extension: obraExt } = await urlToArrayBuffer(data.logoObra);
       logoObraId = workbook.addImage({
-        buffer: obraLogoBuffer,
-        extension: 'png',
+        buffer: obraBuffer,
+        extension: obraExt,
       });
     } catch (e) {
-      console.warn('Erro ao processar logo da obra no Excel:', e);
+      console.warn('Logo da obra não pôde ser convertida para o Excel:', e);
     }
   }
 
@@ -190,7 +207,7 @@ export async function generateOfficialExcel(data: ReportData, photos: ReportPhot
       sheet = newSheet;
     }
 
-    // Inserir Logo da Obra estritamente no intervalo O2:Q6
+    // Inserir Logo da Obra estritamente no intervalo O2:Q6 apenas se existir
     if (logoObraId !== null) {
       try {
         sheet.addImage(logoObraId, 'O2:Q6');
@@ -218,10 +235,10 @@ export async function generateOfficialExcel(data: ReportData, photos: ReportPhot
       sheet.getCell('B35').value = p1.descricao || '';
 
       try {
-        const p1Buffer = await urlToArrayBuffer(p1.dataUrl);
+        const { buffer: p1Buffer, extension: p1Ext } = await urlToArrayBuffer(p1.dataUrl);
         const imgId1 = workbook.addImage({
           buffer: p1Buffer,
-          extension: 'jpeg',
+          extension: p1Ext,
         });
         sheet.addImage(imgId1, 'B14:O29');
       } catch (e) {
@@ -238,10 +255,10 @@ export async function generateOfficialExcel(data: ReportData, photos: ReportPhot
       sheet.getCell('Q35').value = p2.descricao || '';
 
       try {
-        const p2Buffer = await urlToArrayBuffer(p2.dataUrl);
+        const { buffer: p2Buffer, extension: p2Ext } = await urlToArrayBuffer(p2.dataUrl);
         const imgId2 = workbook.addImage({
           buffer: p2Buffer,
-          extension: 'jpeg',
+          extension: p2Ext,
         });
         sheet.addImage(imgId2, 'Q14:AD29');
       } catch (e) {

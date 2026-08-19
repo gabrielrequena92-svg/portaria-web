@@ -7,7 +7,6 @@ import {
   Trash2, 
   Building2, 
   FileSpreadsheet, 
-  FileDown,
   ArrowRight, 
   ArrowLeft, 
   ArrowUp, 
@@ -25,7 +24,6 @@ import {
 } from 'lucide-react';
 import { useDropzone } from 'react-dropzone';
 import { generateOfficialExcel, ReportData, ReportPhoto } from '@/lib/excel-generator';
-import { generateOfficialPDF } from '@/lib/pdf-generator';
 import { 
   getObras, 
   saveObra, 
@@ -63,7 +61,7 @@ export default function RelatorioOrganizacaoWizard() {
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const [isGeneratingExcel, setIsGeneratingExcel] = useState(false);
-  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+
 
   // Referência para o container de auto-scroll
   const scrollIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -375,64 +373,8 @@ export default function RelatorioOrganizacaoWizard() {
     }
   };
 
-  // Gerar PDF Oficial (Idêntico ao Excel Impresso, Otimizado < 10MB)
-  const handleGeneratePDF = async () => {
-    if (fotos.length === 0) {
-      toast.error('Adicione pelo menos uma foto para gerar o relatório.');
-      return;
-    }
-
-    setIsGeneratingPDF(true);
-    try {
-      // 1. Gerar PDF com dimensões exatas da planilha e compressão inteligente
-      const result = await generateOfficialPDF(reportData, fotos);
-
-      // 2. Extrair novas legendas e salvar nos presets da obra
-      const customDescriptions = fotos
-        .map(f => f.descricao?.trim().toUpperCase())
-        .filter(d => d && d.length > 0 && !currentLocais.includes(d));
-
-      if (customDescriptions.length > 0) {
-        const updatedLocais = Array.from(new Set([...currentLocais, ...customDescriptions]));
-        setCurrentLocais(updatedLocais);
-        await handleSaveObraToDb(updatedLocais);
-        toast.info(`${customDescriptions.length} nova(s) legenda(s) salva(s) nos presets da obra!`);
-      }
-
-      // 3. Fazer upload do PDF para o Supabase Storage
-      try {
-        const formData = new FormData();
-        const fileObj = new File([result.blob], result.fileName, {
-          type: 'application/pdf'
-        });
-        formData.append('file', fileObj);
-        formData.append('obraNome', reportData.obraNome);
-        formData.append('semanaRef', reportData.dataRef);
-        formData.append('engenheiro', reportData.engenheiro);
-        formData.append('coordenador', reportData.coordenador);
-        formData.append('totalFotos', String(fotos.length));
-        formData.append('arquivoNome', result.fileName);
-        formData.append('tipoArquivo', 'pdf');
-
-        const saveRes = await saveGeneratedReport(formData);
-        if (saveRes.success) {
-          toast.success('PDF oficial gerado e salvo na nuvem!');
-        } else {
-          toast.success('Download do PDF concluído com sucesso!');
-        }
-      } catch (saveErr) {
-        console.warn('Erro ao sincronizar backup PDF no Supabase:', saveErr);
-        toast.success('Download do PDF concluído com sucesso!');
-      }
-
-    } catch (e: any) {
-      toast.error('Erro ao gerar PDF: ' + e.message);
-    } finally {
-      setIsGeneratingPDF(false);
-    }
-  };
-
   const totalPaginas = Math.ceil(fotos.length / 2) || 1;
+
 
 
   return (
@@ -736,12 +678,12 @@ export default function RelatorioOrganizacaoWizard() {
                 </div>
               </div>
 
-              {/* Botões de Ação de Download Oficial */}
-              <div className="flex flex-wrap items-center gap-3">
+              {/* Botão de Ação de Download Exclusivo em Excel */}
+              <div className="flex items-center gap-3">
                 <button
                   onClick={handleGenerateExcel}
-                  disabled={fotos.length === 0 || isGeneratingExcel || isGeneratingPDF}
-                  className="flex items-center gap-2 px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold shadow-md shadow-emerald-600/20 disabled:opacity-50 transition text-sm active:scale-95"
+                  disabled={fotos.length === 0 || isGeneratingExcel}
+                  className="flex items-center gap-2 px-7 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold shadow-md shadow-emerald-600/20 disabled:opacity-50 transition text-sm active:scale-95"
                 >
                   {isGeneratingExcel ? (
                     <Loader2 size={18} className="animate-spin" />
@@ -750,20 +692,8 @@ export default function RelatorioOrganizacaoWizard() {
                   )}
                   Baixar Excel Oficial (.xlsx)
                 </button>
-
-                <button
-                  onClick={handleGeneratePDF}
-                  disabled={fotos.length === 0 || isGeneratingExcel || isGeneratingPDF}
-                  className="flex items-center gap-2 px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold shadow-md shadow-blue-600/20 disabled:opacity-50 transition text-sm active:scale-95"
-                >
-                  {isGeneratingPDF ? (
-                    <Loader2 size={18} className="animate-spin" />
-                  ) : (
-                    <FileDown size={18} />
-                  )}
-                  Baixar em PDF (.pdf)
-                </button>
               </div>
+
 
             </div>
 
