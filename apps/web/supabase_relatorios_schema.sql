@@ -19,6 +19,12 @@ CREATE TABLE IF NOT EXISTS public.obras_config (
 
 ALTER TABLE public.obras_config ENABLE ROW LEVEL SECURITY;
 
+-- Remover policies antigas se existirem para evitar erro 42710
+DROP POLICY IF EXISTS "Permitir leitura de obras para autenticados" ON public.obras_config;
+DROP POLICY IF EXISTS "Permitir insercao e atualizacao de obras para autenticados" ON public.obras_config;
+DROP POLICY IF EXISTS "Permitir gerenciamento de obras para autenticados" ON public.obras_config;
+
+-- Criar policies atualizadas
 CREATE POLICY "Permitir leitura de obras para autenticados" 
 ON public.obras_config 
 FOR SELECT 
@@ -42,9 +48,9 @@ CREATE TABLE IF NOT EXISTS public.relatorios_historico (
     engenheiro TEXT,
     coordenador TEXT,
     total_fotos INTEGER DEFAULT 0,
-    tipo_arquivo TEXT DEFAULT 'xlsx', -- 'xlsx'
+    tipo_arquivo TEXT DEFAULT 'xlsx',
     arquivo_nome TEXT,
-    arquivo_url TEXT, -- URL pública ou caminho no Supabase Storage
+    arquivo_url TEXT,
     status TEXT DEFAULT 'gerado'
 );
 
@@ -63,6 +69,13 @@ END $$;
 
 ALTER TABLE public.relatorios_historico ENABLE ROW LEVEL SECURITY;
 
+-- Remover policies antigas do histórico se existirem
+DROP POLICY IF EXISTS "Permitir leitura para usuarios autenticados" ON public.relatorios_historico;
+DROP POLICY IF EXISTS "Permitir insercao para usuarios autenticados" ON public.relatorios_historico;
+DROP POLICY IF EXISTS "Permitir leitura de historico para autenticados" ON public.relatorios_historico;
+DROP POLICY IF EXISTS "Permitir insercao de historico para autenticados" ON public.relatorios_historico;
+
+-- Criar policies do histórico
 CREATE POLICY "Permitir leitura de historico para autenticados" 
 ON public.relatorios_historico 
 FOR SELECT 
