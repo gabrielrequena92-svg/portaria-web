@@ -17,19 +17,10 @@ export interface ReportData {
   logoObra: string | null;
 }
 
-// Converte URL para base64 com segurança
-async function urlToBase64(url: string): Promise<string> {
-  if (url.startsWith('data:')) {
-    return url;
-  }
+// Converte qualquer URL (blob, http, data URL) para ArrayBuffer seguro
+async function urlToArrayBuffer(url: string): Promise<ArrayBuffer> {
   const response = await fetch(url);
-  const blob = await response.blob();
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onloadend = () => resolve(reader.result as string);
-    reader.onerror = reject;
-    reader.readAsDataURL(blob);
-  });
+  return await response.arrayBuffer();
 }
 
 // Extrai ou calcula a tag de semana (ex: W34)
@@ -114,13 +105,13 @@ export async function generateOfficialExcel(data: ReportData, photos: ReportPhot
   let logoObraId: number | null = null;
   if (data.logoObra) {
     try {
-      const obraLogoBase64 = await urlToBase64(data.logoObra);
+      const obraLogoBuffer = await urlToArrayBuffer(data.logoObra);
       logoObraId = workbook.addImage({
-        base64: obraLogoBase64,
+        buffer: obraLogoBuffer,
         extension: 'png',
       });
     } catch (e) {
-      console.warn('Erro ao processar logo da obra:', e);
+      console.warn('Erro ao processar logo da obra no Excel:', e);
     }
   }
 
@@ -227,9 +218,9 @@ export async function generateOfficialExcel(data: ReportData, photos: ReportPhot
       sheet.getCell('B35').value = p1.descricao || '';
 
       try {
-        const p1Base64 = await urlToBase64(p1.dataUrl);
+        const p1Buffer = await urlToArrayBuffer(p1.dataUrl);
         const imgId1 = workbook.addImage({
-          base64: p1Base64,
+          buffer: p1Buffer,
           extension: 'jpeg',
         });
         sheet.addImage(imgId1, 'B14:O29');
@@ -247,9 +238,9 @@ export async function generateOfficialExcel(data: ReportData, photos: ReportPhot
       sheet.getCell('Q35').value = p2.descricao || '';
 
       try {
-        const p2Base64 = await urlToBase64(p2.dataUrl);
+        const p2Buffer = await urlToArrayBuffer(p2.dataUrl);
         const imgId2 = workbook.addImage({
-          base64: p2Base64,
+          buffer: p2Buffer,
           extension: 'jpeg',
         });
         sheet.addImage(imgId2, 'Q14:AD29');
@@ -285,4 +276,3 @@ export async function generateOfficialExcel(data: ReportData, photos: ReportPhot
     fileName
   };
 }
-

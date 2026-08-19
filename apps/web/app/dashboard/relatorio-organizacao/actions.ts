@@ -121,16 +121,15 @@ export async function saveObra(obra: ObraDbRecord): Promise<{ success: boolean; 
   try {
     const supabase = await createClient();
     
-    // Normalizar dados
-    const payload = {
+    // Normalizar dados (sem forçar updated_at caso a coluna não exista no banco)
+    const payload: any = {
       nome: obra.nome.trim().toUpperCase(),
       codigo: obra.codigo || '',
       endereco: obra.endereco || '',
       engenheiro: obra.engenheiro || '',
       coordenador: obra.coordenador || '',
       logo_url: obra.logo_url || null,
-      locais: obra.locais || [],
-      updated_at: new Date().toISOString()
+      locais: obra.locais || []
     };
 
     const { data, error } = await supabase
@@ -138,6 +137,7 @@ export async function saveObra(obra: ObraDbRecord): Promise<{ success: boolean; 
       .upsert(payload, { onConflict: 'nome' })
       .select()
       .single();
+
 
     if (error) {
       console.error('Erro ao salvar obra:', error);

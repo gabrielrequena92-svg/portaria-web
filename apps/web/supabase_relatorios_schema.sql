@@ -15,9 +15,30 @@ CREATE TABLE IF NOT EXISTS public.obras_config (
     coordenador TEXT,
     logo_url TEXT,
     locais TEXT[] DEFAULT ARRAY[]::TEXT[]
-);
+-- Garantir que as colunas updated_at e logo_url existam caso a tabela já tenha sido criada antes
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_schema = 'public' 
+        AND table_name = 'obras_config' 
+        AND column_name = 'updated_at'
+    ) THEN
+        ALTER TABLE public.obras_config ADD COLUMN updated_at TIMESTAMPTZ DEFAULT NOW();
+    END IF;
+
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_schema = 'public' 
+        AND table_name = 'obras_config' 
+        AND column_name = 'logo_url'
+    ) THEN
+        ALTER TABLE public.obras_config ADD COLUMN logo_url TEXT;
+    END IF;
+END $$;
 
 ALTER TABLE public.obras_config ENABLE ROW LEVEL SECURITY;
+
 
 -- Remover policies antigas se existirem para evitar erro 42710
 DROP POLICY IF EXISTS "Permitir leitura de obras para autenticados" ON public.obras_config;
