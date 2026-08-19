@@ -262,16 +262,27 @@ export async function generateOfficialExcel(data: ReportData, photos: ReportPhot
   // 4. Gerar Buffer e Baixar Arquivo com a identificação da semana
   const buffer = await workbook.xlsx.writeBuffer();
   const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-  const downloadUrl = window.URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = downloadUrl;
   
   const cleanName = data.obraNome.replace(/\s+/g, '_') || 'Relatorio';
   const weekTag = extractWeekTag(data.dataRef);
-  a.download = `Relatorio_${cleanName}_${weekTag}.xlsx`;
+  const fileName = `Relatorio_${cleanName}_${weekTag}.xlsx`;
   
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  window.URL.revokeObjectURL(downloadUrl);
+  if (typeof window !== 'undefined') {
+    const downloadUrl = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = downloadUrl;
+    a.download = fileName;
+    
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(downloadUrl);
+  }
+
+  return {
+    buffer,
+    blob,
+    fileName
+  };
 }
+

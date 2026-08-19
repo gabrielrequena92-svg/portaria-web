@@ -1,12 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import Link from 'next/link';
 import { 
   Upload, 
-  FileDown, 
   Trash2, 
   Building2, 
   FileSpreadsheet, 
+  FileDown,
   ArrowRight, 
   ArrowLeft, 
   ArrowUp, 
@@ -20,193 +21,91 @@ import {
   Layers,
   GripVertical,
   History,
-  Clock
+  Save
 } from 'lucide-react';
 import { useDropzone } from 'react-dropzone';
-import { generateOfficialPDF, ReportData, ReportPhoto } from '@/lib/pdf-generator';
-import { generateOfficialExcel } from '@/lib/excel-generator';
-import { createClient } from '@/lib/supabase/client';
-
-interface ObraConfig {
-  engenheiro: string;
-  coordenador: string;
-  codigo: string;
-  endereco: string;
-  logo: string | null;
-  locais: string[];
-}
-
-interface HistoricoItem {
-  id: string;
-  created_at: string;
-  obra_nome: string;
-  semana_ref: string;
-  tipo_arquivo: string;
-  total_fotos: number;
-  arquivo_nome: string;
-}
-
-const INITIAL_OBRAS: Record<string, ObraConfig> = {
-  '3Z FAZENDA DA MATA': {
-    engenheiro: 'Jacqueline Correia',
-    coordenador: 'Guilherme Quadros',
-    codigo: 'L3.0002/18',
-    endereco: 'Rua Antônio Garcia, 8-48 - Bauru/SP',
-    logo: null,
-    locais: [
-      'ADMINISTRATIVO',
-      'ALMOXARIFADO',
-      'ENTRADA CANTEIRO',
-      'CANTEIRO GERAL',
-      'ARMAÇÃO',
-      'CARPINTARIA',
-      'QUÍMICOS',
-      'SALA MESTRES',
-      'CIMENTO',
-      'MÁQUINAS',
-      'MADEIRA',
-      'FERRAMENTAS MANUAIS',
-      'AÇO',
-      'TUBOS'
-    ]
-  },
-  '5Z CIDADE DAS ÁRVORES': {
-    engenheiro: 'VINICIUS PERAL',
-    coordenador: 'GUILHERME QUADROS',
-    codigo: 'L5.0041/20',
-    endereco: 'Av. das Nações Unidas - Bauru/SP',
-    logo: null,
-    locais: [
-      'ADMINISTRATIVO',
-      'ALMOXARIFADO - EXTERNO',
-      'ALMOXARIFADO - PRATELEIRA A',
-      'ALMOXARIFADO - PRATELEIRA B',
-      'ALMOXARIFADO - PRATELEIRA C',
-      'ARMAÇÃO',
-      'BANHEIROS',
-      'CANTEIRO GERAL',
-      'CARPINTARIA',
-      'CIMENTO',
-      'ENTRADA CANTEIRO',
-      'FERRAMENTAS MANUAIS',
-      'MADEIRA',
-      'MÁQUINAS',
-      'QUÍMICOS',
-      'SALA MESTRES',
-      'TUBOS'
-    ]
-  }
-};
+import { generateOfficialExcel, ReportData, ReportPhoto } from '@/lib/excel-generator';
+import { generateOfficialPDF } from '@/lib/pdf-generator';
+import { 
+  getObras, 
+  saveObra, 
+  uploadLogoObra, 
+  saveGeneratedReport, 
+  ObraDbRecord 
+} from './actions';
+import { toast } from 'sonner';
 
 export default function RelatorioOrganizacaoWizard() {
   const [currentStep, setCurrentStep] = useState<1 | 2>(1);
-  const [obrasList, setObrasList] = useState<Record<string, ObraConfig>>(INITIAL_OBRAS);
-  const [selectedObraKey, setSelectedObraKey] = useState<string>('3Z FAZENDA DA MATA');
-
-  // Supabase client
-  const supabase = createClient();
-  const [historico, setHistorico] = useState<HistoricoItem[]>([]);
-  const [showHistorico, setShowHistorico] = useState(false);
+  const [obrasList, setObrasList] = useState<Record<string, ObraDbRecord>>({});
+  const [selectedObraKey, setSelectedObraKey] = useState<string>('');
+  const [isLoadingObras, setIsLoadingObras] = useState<boolean>(true);
+  const [isSavingObra, setIsSavingObra] = useState<boolean>(false);
+  const [isUploadingLogo, setIsUploadingLogo] = useState<boolean>(false);
 
   // Estado do formulário da Obra
   const [reportData, setReportData] = useState<ReportData>({
-    obraNome: '3Z FAZENDA DA MATA',
-    obraCodigo: 'L3.0002/18',
-    endereco: 'Rua Antônio Garcia, 8-48 - Bauru/SP',
+    obraNome: '',
+    obraCodigo: '',
+    endereco: '',
     dataRef: `Semana W${getWeekNumber(new Date())} - Data: ${formatCurrentWeekRange()}`,
-    engenheiro: 'Jacqueline Correia',
-    coordenador: 'Guilherme Quadros',
+    engenheiro: '',
+    coordenador: '',
     logoObra: null,
   });
 
   // Lista de tags de locais da obra atual
-  const [currentLocais, setCurrentLocais] = useState<string[]>(INITIAL_OBRAS['3Z FAZENDA DA MATA'].locais);
+  const [currentLocais, setCurrentLocais] = useState<string[]>([]);
   const [novoLocalInput, setNovoLocalInput] = useState('');
 
   // Fotos & Drag Reorder
   const [fotos, setFotos] = useState<ReportPhoto[]>([]);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
-
   const [isGeneratingExcel, setIsGeneratingExcel] = useState(false);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 
-  // Carregar dados salvos e histórico
+  // Referência para o container de auto-scroll
+  const scrollIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  // 1. Carregar Obras do Supabase ao Iniciar
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('gr_obras_config');
-      if (saved) {
-        try {
-          const parsed = JSON.parse(saved);
-          setObrasList(parsed);
-          if (parsed[selectedObraKey]) {
-            applyObra(selectedObraKey, parsed[selectedObraKey]);
-          }
-        } catch (e) {
-          console.error(e);
-        }
-      }
-    }
-    carregarHistorico();
+    loadObrasFromDb();
   }, []);
 
-  const carregarHistorico = async () => {
+  const loadObrasFromDb = async () => {
+    setIsLoadingObras(true);
     try {
-      const { data, error } = await supabase
-        .from('relatorios_historico')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(10);
+      const res = await getObras();
+      if (res.success && res.data.length > 0) {
+        const obrasMap: Record<string, ObraDbRecord> = {};
+        res.data.forEach((o) => {
+          obrasMap[o.nome] = o;
+        });
+        setObrasList(obrasMap);
 
-      if (data && !error) {
-        setHistorico(data as HistoricoItem[]);
+        // Seleciona a primeira obra por padrão se nenhuma selecionada
+        const firstKey = res.data[0].nome;
+        setSelectedObraKey(firstKey);
+        applyObra(firstKey, res.data[0]);
       }
-    } catch (e) {
-      // Tabela ainda não criada no Supabase, continua normalmente
+    } catch (e: any) {
+      toast.error('Erro ao carregar obras do banco de dados');
+    } finally {
+      setIsLoadingObras(false);
     }
   };
 
-  const registrarHistorico = async (tipo: 'xlsx' | 'pdf', arquivoNome: string) => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      const novoRegistro = {
-        user_id: user?.id || null,
-        obra_nome: reportData.obraNome,
-        semana_ref: reportData.dataRef,
-        engenheiro: reportData.engenheiro,
-        coordenador: reportData.coordenador,
-        total_fotos: fotos.length,
-        tipo_arquivo: tipo,
-        arquivo_nome: arquivoNome
-      };
-
-      const { data } = await supabase.from('relatorios_historico').insert([novoRegistro]).select();
-      if (data) {
-        setHistorico(prev => [data[0] as HistoricoItem, ...prev]);
-      }
-    } catch (e) {
-      // Ignora caso tabela não exista
-    }
-  };
-
-  // Salvar no localStorage sempre que atualizar
-  const saveObrasState = (updatedList: Record<string, ObraConfig>) => {
-    setObrasList(updatedList);
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('gr_obras_config', JSON.stringify(updatedList));
-    }
-  };
-
-  const applyObra = (key: string, obra: ObraConfig) => {
+  const applyObra = (key: string, obra: ObraDbRecord) => {
     setSelectedObraKey(key);
     setReportData(prev => ({
       ...prev,
       obraNome: key,
-      obraCodigo: obra.codigo,
-      endereco: obra.endereco,
-      engenheiro: obra.engenheiro,
-      coordenador: obra.coordenador,
-      logoObra: obra.logo
+      obraCodigo: obra.codigo || '',
+      endereco: obra.endereco || '',
+      engenheiro: obra.engenheiro || '',
+      coordenador: obra.coordenador || '',
+      logoObra: obra.logo_url || null
     }));
     setCurrentLocais(obra.locais || []);
   };
@@ -223,81 +122,138 @@ export default function RelatorioOrganizacaoWizard() {
         coordenador: '',
         logoObra: null
       }));
-      setCurrentLocais(['ADMINISTRATIVO', 'ALMOXARIFADO', 'CANTEIRO']);
+      setCurrentLocais(['ADMINISTRATIVO', 'ALMOXARIFADO', 'CANTEIRO GERAL', 'ENTRADA CANTEIRO']);
     } else {
-      const obra = obrasList[key] || INITIAL_OBRAS[key];
-      applyObra(key, obra);
-    }
-  };
-
-  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const logoUrl = URL.createObjectURL(file);
-      setReportData(prev => ({ ...prev, logoObra: logoUrl }));
-
-      // Salva a logo na memória daquela obra
-      if (selectedObraKey && selectedObraKey !== 'NOVA') {
-        const updated = {
-          ...obrasList,
-          [selectedObraKey]: {
-            ...obrasList[selectedObraKey],
-            logo: logoUrl
-          }
-        };
-        saveObrasState(updated);
+      const obra = obrasList[key];
+      if (obra) {
+        applyObra(key, obra);
       }
     }
   };
 
-  const handleAddLocalTag = () => {
+  // Salvar Obra no Supabase
+  const handleSaveObraToDb = async (customLocais?: string[]) => {
+    if (!reportData.obraNome.trim()) {
+      toast.error('Informe o nome da obra para salvar.');
+      return false;
+    }
+
+    setIsSavingObra(true);
+    const locaisParaSalvar = customLocais || currentLocais;
+    const obraPayload: ObraDbRecord = {
+      nome: reportData.obraNome.trim().toUpperCase(),
+      codigo: reportData.obraCodigo,
+      endereco: reportData.endereco,
+      engenheiro: reportData.engenheiro,
+      coordenador: reportData.coordenador,
+      logo_url: reportData.logoObra,
+      locais: locaisParaSalvar
+    };
+
+    const res = await saveObra(obraPayload);
+    setIsSavingObra(false);
+
+    if (res.success && res.data) {
+      setObrasList(prev => ({
+        ...prev,
+        [res.data!.nome]: res.data!
+      }));
+      setSelectedObraKey(res.data.nome);
+      return true;
+    } else {
+      toast.error('Erro ao salvar obra no banco: ' + (res.error || ''));
+      return false;
+    }
+  };
+
+  // Upload de Logo com persistência no Supabase Storage
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Pré-visualização local imediata
+    const localUrl = URL.createObjectURL(file);
+    setReportData(prev => ({ ...prev, logoObra: localUrl }));
+
+    // Upload para a nuvem
+    setIsUploadingLogo(true);
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('obraNome', reportData.obraNome || 'obra');
+
+    try {
+      const res = await uploadLogoObra(formData);
+      if (res.success && res.url) {
+        setReportData(prev => ({ ...prev, logoObra: res.url || null }));
+        toast.success('Logo da obra enviada para o Supabase Storage!');
+
+        // Se já tiver nome de obra, salva logo no registro da obra
+        if (reportData.obraNome.trim()) {
+          await saveObra({
+            nome: reportData.obraNome.trim().toUpperCase(),
+            codigo: reportData.obraCodigo,
+            endereco: reportData.endereco,
+            engenheiro: reportData.engenheiro,
+            coordenador: reportData.coordenador,
+            logo_url: res.url,
+            locais: currentLocais
+          });
+        }
+      } else {
+        toast.info('Logo mantida localmente para este relatório.');
+      }
+    } catch (err: any) {
+      toast.error('Erro ao salvar logo na nuvem');
+    } finally {
+      setIsUploadingLogo(false);
+    }
+  };
+
+  const handleAddLocalTag = async () => {
     const tag = novoLocalInput.trim().toUpperCase();
     if (tag && !currentLocais.includes(tag)) {
       const updated = [...currentLocais, tag];
       setCurrentLocais(updated);
       setNovoLocalInput('');
 
-      if (selectedObraKey && selectedObraKey !== 'NOVA' && obrasList[selectedObraKey]) {
-        const updatedObras = {
-          ...obrasList,
-          [selectedObraKey]: {
-            ...obrasList[selectedObraKey],
-            locais: updated
-          }
-        };
-        saveObrasState(updatedObras);
+      if (selectedObraKey && selectedObraKey !== 'NOVA' && reportData.obraNome.trim()) {
+        await handleSaveObraToDb(updated);
       }
     }
   };
 
-  const handleRemoveLocalTag = (tagToRemove: string) => {
+  const handleRemoveLocalTag = async (tagToRemove: string) => {
     const updated = currentLocais.filter(t => t !== tagToRemove);
     setCurrentLocais(updated);
-    if (selectedObraKey && selectedObraKey !== 'NOVA' && obrasList[selectedObraKey]) {
-      const updatedObras = {
-        ...obrasList,
-        [selectedObraKey]: {
-          ...obrasList[selectedObraKey],
-          locais: updated
-        }
-      };
-      saveObrasState(updatedObras);
+    if (selectedObraKey && selectedObraKey !== 'NOVA' && reportData.obraNome.trim()) {
+      await handleSaveObraToDb(updated);
     }
+  };
+
+  // Limpeza de nome de arquivo para legenda inicial
+  const cleanFileNameForCaption = (fileName: string): string => {
+    return fileName
+      .replace(/\.[^/.]+$/, '')             // Remove extensão (.jpg, .png, etc.)
+      .replace(/[-_]/g, ' ')                // Troca underline e hífens por espaço
+      .replace(/\s+/g, ' ')                 // Espaços múltiplos para um só
+      .trim()
+      .toUpperCase();
   };
 
   // Drag and Drop de upload de arquivos
   const onDrop = (acceptedFiles: File[]) => {
-    const novas = acceptedFiles.map((file, idx) => {
+    const novas = acceptedFiles.map((file) => {
       const dataUrl = URL.createObjectURL(file);
-      const defaultDesc = currentLocais[(fotos.length + idx) % currentLocais.length] || '';
+      const initialCaption = cleanFileNameForCaption(file.name);
       return {
         id: Math.random().toString(36).substring(2, 9),
         dataUrl,
-        descricao: defaultDesc,
+        descricao: initialCaption,
         originalName: file.name
       };
     });
     setFotos(prev => [...prev, ...novas]);
+    toast.success(`${novas.length} foto(s) adicionada(s) com nomenclaturas automáticas!`);
   };
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -305,7 +261,7 @@ export default function RelatorioOrganizacaoWizard() {
     accept: { 'image/*': ['.png', '.jpg', '.jpeg'] }
   });
 
-  // Reordenação por Arrastar e Soltar (Drag & Drop nativo suave)
+  // Reordenação por Arrastar e Soltar (com suporte a auto-scroll suave)
   const handleDragStart = (index: number) => {
     setDraggedIndex(index);
   };
@@ -325,6 +281,30 @@ export default function RelatorioOrganizacaoWizard() {
     }
     setDraggedIndex(null);
     setDragOverIndex(null);
+    if (scrollIntervalRef.current) {
+      clearInterval(scrollIntervalRef.current);
+      scrollIntervalRef.current = null;
+    }
+  };
+
+  // Auto-scroll durante o Drag & Drop quando o cursor se aproxima do topo ou da base da tela
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    if (draggedIndex === null) return;
+
+    const threshold = 160;
+    const clientY = e.clientY;
+    const windowHeight = window.innerHeight;
+
+    if (clientY < threshold) {
+      // Scroll para cima
+      const speed = Math.max(8, (threshold - clientY) / 5);
+      window.scrollBy({ top: -speed, behavior: 'auto' });
+    } else if (clientY > windowHeight - threshold) {
+      // Scroll para baixo
+      const speed = Math.max(8, (clientY - (windowHeight - threshold)) / 5);
+      window.scrollBy({ top: speed, behavior: 'auto' });
+    }
   };
 
   // Reordenação por botões de seta
@@ -338,37 +318,115 @@ export default function RelatorioOrganizacaoWizard() {
     setFotos(reordered);
   };
 
-  // Gerar Excel
+  // Gerar Excel Oficial, Salvar no Supabase e Atualizar Presets
   const handleGenerateExcel = async () => {
     if (fotos.length === 0) {
-      alert('Adicione pelo menos uma foto para gerar o relatório.');
+      toast.error('Adicione pelo menos uma foto para gerar o relatório.');
       return;
     }
+
     setIsGeneratingExcel(true);
     try {
-      await generateOfficialExcel(reportData, fotos);
-      const cleanName = reportData.obraNome.replace(/\s+/g, '_') || 'Relatorio';
-      registrarHistorico('xlsx', `Relatorio_${cleanName}.xlsx`);
+      // 1. Gerar o arquivo Excel localmente e disparar o download
+      const result = await generateOfficialExcel(reportData, fotos);
+
+      // 2. Extrair novas legendas digitadas pelo usuário e adicioná-las aos presets da obra
+      const customDescriptions = fotos
+        .map(f => f.descricao?.trim().toUpperCase())
+        .filter(d => d && d.length > 0 && !currentLocais.includes(d));
+
+      if (customDescriptions.length > 0) {
+        const updatedLocais = Array.from(new Set([...currentLocais, ...customDescriptions]));
+        setCurrentLocais(updatedLocais);
+        await handleSaveObraToDb(updatedLocais);
+        toast.info(`${customDescriptions.length} nova(s) legenda(s) salva(s) nos presets da obra!`);
+      }
+
+      // 3. Fazer upload do arquivo .xlsx para o Supabase Storage e registrar histórico
+      try {
+        const formData = new FormData();
+        const fileObj = new File([result.blob], result.fileName, {
+          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        });
+        formData.append('file', fileObj);
+        formData.append('obraNome', reportData.obraNome);
+        formData.append('semanaRef', reportData.dataRef);
+        formData.append('engenheiro', reportData.engenheiro);
+        formData.append('coordenador', reportData.coordenador);
+        formData.append('totalFotos', String(fotos.length));
+        formData.append('arquivoNome', result.fileName);
+        formData.append('tipoArquivo', 'xlsx');
+
+        const saveRes = await saveGeneratedReport(formData);
+        if (saveRes.success) {
+          toast.success('Relatório Excel gerado e backup salvo na nuvem!');
+        } else {
+          toast.success('Download do Excel concluído com sucesso!');
+        }
+      } catch (saveErr) {
+        console.warn('Erro ao sincronizar backup no Supabase:', saveErr);
+        toast.success('Download do Excel concluído com sucesso!');
+      }
+
     } catch (e: any) {
-      alert('Erro ao gerar Excel: ' + e.message);
+      toast.error('Erro ao gerar Excel: ' + e.message);
     } finally {
       setIsGeneratingExcel(false);
     }
   };
 
-  // Gerar PDF
+  // Gerar PDF Oficial (Idêntico ao Excel Impresso, Otimizado < 10MB)
   const handleGeneratePDF = async () => {
     if (fotos.length === 0) {
-      alert('Adicione pelo menos uma foto para gerar o relatório.');
+      toast.error('Adicione pelo menos uma foto para gerar o relatório.');
       return;
     }
+
     setIsGeneratingPDF(true);
     try {
-      await generateOfficialPDF(reportData, fotos);
-      const cleanName = reportData.obraNome.replace(/\s+/g, '_') || 'Relatorio';
-      registrarHistorico('pdf', `Relatorio_Fotografico_${cleanName}.pdf`);
+      // 1. Gerar PDF com dimensões exatas da planilha e compressão inteligente
+      const result = await generateOfficialPDF(reportData, fotos);
+
+      // 2. Extrair novas legendas e salvar nos presets da obra
+      const customDescriptions = fotos
+        .map(f => f.descricao?.trim().toUpperCase())
+        .filter(d => d && d.length > 0 && !currentLocais.includes(d));
+
+      if (customDescriptions.length > 0) {
+        const updatedLocais = Array.from(new Set([...currentLocais, ...customDescriptions]));
+        setCurrentLocais(updatedLocais);
+        await handleSaveObraToDb(updatedLocais);
+        toast.info(`${customDescriptions.length} nova(s) legenda(s) salva(s) nos presets da obra!`);
+      }
+
+      // 3. Fazer upload do PDF para o Supabase Storage
+      try {
+        const formData = new FormData();
+        const fileObj = new File([result.blob], result.fileName, {
+          type: 'application/pdf'
+        });
+        formData.append('file', fileObj);
+        formData.append('obraNome', reportData.obraNome);
+        formData.append('semanaRef', reportData.dataRef);
+        formData.append('engenheiro', reportData.engenheiro);
+        formData.append('coordenador', reportData.coordenador);
+        formData.append('totalFotos', String(fotos.length));
+        formData.append('arquivoNome', result.fileName);
+        formData.append('tipoArquivo', 'pdf');
+
+        const saveRes = await saveGeneratedReport(formData);
+        if (saveRes.success) {
+          toast.success('PDF oficial gerado e salvo na nuvem!');
+        } else {
+          toast.success('Download do PDF concluído com sucesso!');
+        }
+      } catch (saveErr) {
+        console.warn('Erro ao sincronizar backup PDF no Supabase:', saveErr);
+        toast.success('Download do PDF concluído com sucesso!');
+      }
+
     } catch (e: any) {
-      alert('Erro ao gerar PDF: ' + e.message);
+      toast.error('Erro ao gerar PDF: ' + e.message);
     } finally {
       setIsGeneratingPDF(false);
     }
@@ -376,8 +434,12 @@ export default function RelatorioOrganizacaoWizard() {
 
   const totalPaginas = Math.ceil(fotos.length / 2) || 1;
 
+
   return (
-    <div className="min-h-screen bg-neutral-100 p-6 md:p-10">
+    <div 
+      className="min-h-screen bg-neutral-100 p-6 md:p-10"
+      onDragOver={handleDragOver}
+    >
       
       {/* HEADER GERAL COM INDICADOR DE ETAPAS */}
       <div className="max-w-6xl mx-auto mb-8 space-y-4">
@@ -394,17 +456,15 @@ export default function RelatorioOrganizacaoWizard() {
             </h1>
           </div>
 
-          {/* Stepper Visual + Botão de Histórico */}
+          {/* Stepper Visual + Link para Nova Página de Histórico */}
           <div className="flex items-center gap-3">
-            <button
-              onClick={() => setShowHistorico(!showHistorico)}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-2xl border text-xs font-bold transition shadow-sm ${
-                showHistorico ? 'bg-neutral-900 text-white' : 'bg-white text-neutral-700 hover:bg-neutral-50'
-              }`}
+            <Link
+              href="/dashboard/relatorio-organizacao/historico"
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-2xl border border-neutral-200 bg-white hover:bg-neutral-50 text-neutral-700 text-xs font-bold transition shadow-sm"
             >
-              <History size={15} />
-              Histórico ({historico.length})
-            </button>
+              <History size={15} className="text-emerald-600" />
+              Histórico & Downloads
+            </Link>
 
             <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-2xl border shadow-sm">
               <button
@@ -420,11 +480,12 @@ export default function RelatorioOrganizacaoWizard() {
               <span className="text-neutral-300">→</span>
 
               <button
-                onClick={() => {
+                onClick={async () => {
                   if (!reportData.obraNome.trim()) {
-                    alert('Preencha o nome da obra antes de avançar.');
+                    toast.error('Preencha o nome da obra antes de avançar.');
                     return;
                   }
+                  await handleSaveObraToDb();
                   setCurrentStep(2);
                 }}
                 className={`flex items-center gap-2 px-3 py-1.5 rounded-xl font-bold text-xs transition ${
@@ -437,45 +498,6 @@ export default function RelatorioOrganizacaoWizard() {
             </div>
           </div>
         </div>
-
-        {/* PAINEL RETRÁTIL: HISTÓRICO SUPABASE */}
-        {showHistorico && (
-          <div className="bg-white rounded-3xl p-6 border border-neutral-200 shadow-lg space-y-4">
-            <div className="flex items-center justify-between border-b pb-3">
-              <div className="flex items-center gap-2">
-                <Clock className="text-emerald-600" size={18} />
-                <h3 className="font-bold text-sm text-neutral-800">Últimos Relatórios Gerados (Supabase)</h3>
-              </div>
-              <span className="text-xs text-neutral-400">Gravados na nuvem</span>
-            </div>
-
-            {historico.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                {historico.map((item) => (
-                  <div key={item.id} className="p-3.5 bg-neutral-50 border rounded-2xl space-y-1.5">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-neutral-800 truncate">{item.obra_nome}</span>
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase ${
-                        item.tipo_arquivo === 'xlsx' ? 'bg-emerald-100 text-emerald-800' : 'bg-blue-100 text-blue-800'
-                      }`}>
-                        {item.tipo_arquivo}
-                      </span>
-                    </div>
-                    <p className="text-[11px] text-neutral-500">{item.semana_ref}</p>
-                    <div className="flex items-center justify-between pt-1 border-t text-[10px] text-neutral-400">
-                      <span>{item.total_fotos} fotos</span>
-                      <span>{new Date(item.created_at).toLocaleDateString('pt-BR')}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-xs text-neutral-400 text-center py-4">
-                Nenhum relatório registrado ainda no Supabase. Os próximos relatórios gerados aparecerão aqui automaticamente!
-              </p>
-            )}
-          </div>
-        )}
       </div>
 
       <div className="max-w-6xl mx-auto">
@@ -495,15 +517,22 @@ export default function RelatorioOrganizacaoWizard() {
                   </div>
                   <div>
                     <h2 className="font-bold text-lg text-neutral-900">Selecione ou Cadastre a Obra</h2>
-                    <p className="text-xs text-neutral-500">Os dados e logo ficam salvos automaticamente na memória do sistema.</p>
+                    <p className="text-xs text-neutral-500">Dados, logo e presets de locais salvos na nuvem (Supabase).</p>
                   </div>
                 </div>
+
+                {isLoadingObras && (
+                  <div className="flex items-center gap-1.5 text-xs text-neutral-400">
+                    <Loader2 size={14} className="animate-spin text-emerald-600" />
+                    Carregando banco...
+                  </div>
+                )}
               </div>
 
               {/* Seletor de Obras */}
               <div className="space-y-2">
                 <label className="text-xs font-bold text-neutral-600 uppercase tracking-wider">
-                  Obra Selecionada:
+                  Obra Selecionada (Salva no Banco):
                 </label>
                 <select
                   value={selectedObraKey}
@@ -530,7 +559,7 @@ export default function RelatorioOrganizacaoWizard() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-neutral-500">Engenheiro Responsável</label>
+                  <label className="text-xs font-semibold text-neutral-500">Engenheiro(a) Responsável</label>
                   <input
                     type="text"
                     value={reportData.engenheiro}
@@ -562,7 +591,7 @@ export default function RelatorioOrganizacaoWizard() {
                 </div>
               </div>
 
-              {/* Upload da Logo da Obra com Memória */}
+              {/* Upload da Logo da Obra com Armazenamento no Banco */}
               <div className="pt-4 border-t space-y-2">
                 <div className="flex items-center justify-between">
                   <label className="text-xs font-bold text-neutral-700 uppercase tracking-wider">
@@ -570,14 +599,18 @@ export default function RelatorioOrganizacaoWizard() {
                   </label>
                   {reportData.logoObra && (
                     <span className="text-[11px] text-emerald-600 font-bold flex items-center gap-1">
-                      <CheckCircle2 size={13} /> Logo Salva na Memória
+                      <CheckCircle2 size={13} /> Logo Sincronizada
                     </span>
                   )}
                 </div>
 
                 <div className="flex items-center gap-4">
                   <label className="flex-1 flex items-center justify-center gap-2 h-14 border-2 border-dashed rounded-xl cursor-pointer hover:bg-neutral-50 text-xs font-medium text-neutral-600 transition">
-                    <ImageIcon size={18} className="text-neutral-400" />
+                    {isUploadingLogo ? (
+                      <Loader2 size={18} className="animate-spin text-emerald-600" />
+                    ) : (
+                      <ImageIcon size={18} className="text-neutral-400" />
+                    )}
                     <span>{reportData.logoObra ? 'Trocar Imagem da Logo' : 'Carregar Logo desta Obra'}</span>
                     <input type="file" accept="image/*" onChange={handleLogoUpload} className="hidden" />
                   </label>
@@ -590,14 +623,25 @@ export default function RelatorioOrganizacaoWizard() {
                 </div>
               </div>
 
-              {/* Botão de Avanço */}
-              <div className="pt-4 flex justify-end">
+              {/* Botões de Ação */}
+              <div className="pt-4 flex items-center justify-between gap-3 border-t">
                 <button
-                  onClick={() => {
+                  type="button"
+                  onClick={() => handleSaveObraToDb()}
+                  disabled={isSavingObra}
+                  className="flex items-center gap-1.5 px-4 py-3 rounded-2xl border border-neutral-300 hover:bg-neutral-50 text-neutral-700 font-bold text-xs transition disabled:opacity-50"
+                >
+                  {isSavingObra ? <Loader2 size={15} className="animate-spin" /> : <Save size={15} />}
+                  Salvar Alterações da Obra
+                </button>
+
+                <button
+                  onClick={async () => {
                     if (!reportData.obraNome.trim()) {
-                      alert('Digite o nome da obra para continuar.');
+                      toast.error('Digite o nome da obra para continuar.');
                       return;
                     }
+                    await handleSaveObraToDb();
                     setCurrentStep(2);
                   }}
                   className="flex items-center gap-2 px-8 py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold shadow-lg shadow-emerald-600/25 transition text-sm"
@@ -618,7 +662,7 @@ export default function RelatorioOrganizacaoWizard() {
                   </h3>
                 </div>
                 <p className="text-xs text-neutral-500 leading-relaxed">
-                  Esses nomes-chave aparecerão como botões rápidos na Etapa 2 para legendar cada foto em 1 clique.
+                  Esses nomes-chave aparecerão como botões rápidos na Etapa 2. Novas legendas que você digitar também serão salvas aqui automaticamente.
                 </p>
 
                 {/* Adicionar novo local */}
@@ -658,13 +702,13 @@ export default function RelatorioOrganizacaoWizard() {
                 </div>
               </div>
 
-              {/* Card Resumo do Cabeçalho */}
+              {/* Card Resumo */}
               <div className="bg-emerald-50/70 border border-emerald-200 rounded-3xl p-6 space-y-3">
                 <h4 className="text-xs font-bold uppercase tracking-wider text-emerald-800 flex items-center gap-1.5">
                   <Sparkles size={15} /> Modelo Pronto para Fotos
                 </h4>
                 <p className="text-xs text-emerald-700 leading-relaxed">
-                  Na etapa seguinte, você pode arrastar as fotos para reordenar livremente antes de gerar a planilha oficial do Excel.
+                  Na etapa seguinte, as fotos carregam automaticamente o nome do arquivo como legenda. Arraste os cards para reordenar livremente (com auto-scroll ativo).
                 </p>
               </div>
             </div>
@@ -692,12 +736,12 @@ export default function RelatorioOrganizacaoWizard() {
                 </div>
               </div>
 
-              {/* Botões de Ação de Download */}
-              <div className="flex items-center gap-3">
+              {/* Botões de Ação de Download Oficial */}
+              <div className="flex flex-wrap items-center gap-3">
                 <button
                   onClick={handleGenerateExcel}
-                  disabled={fotos.length === 0 || isGeneratingExcel}
-                  className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold shadow-md shadow-emerald-600/20 disabled:opacity-50 transition text-sm"
+                  disabled={fotos.length === 0 || isGeneratingExcel || isGeneratingPDF}
+                  className="flex items-center gap-2 px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold shadow-md shadow-emerald-600/20 disabled:opacity-50 transition text-sm active:scale-95"
                 >
                   {isGeneratingExcel ? (
                     <Loader2 size={18} className="animate-spin" />
@@ -709,17 +753,18 @@ export default function RelatorioOrganizacaoWizard() {
 
                 <button
                   onClick={handleGeneratePDF}
-                  disabled={fotos.length === 0 || isGeneratingPDF}
-                  className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold shadow-md shadow-blue-600/20 disabled:opacity-50 transition text-sm"
+                  disabled={fotos.length === 0 || isGeneratingExcel || isGeneratingPDF}
+                  className="flex items-center gap-2 px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold shadow-md shadow-blue-600/20 disabled:opacity-50 transition text-sm active:scale-95"
                 >
                   {isGeneratingPDF ? (
                     <Loader2 size={18} className="animate-spin" />
                   ) : (
                     <FileDown size={18} />
                   )}
-                  Baixar em PDF
+                  Baixar em PDF (.pdf)
                 </button>
               </div>
+
             </div>
 
             {/* Dropzone de Fotos */}
@@ -735,7 +780,7 @@ export default function RelatorioOrganizacaoWizard() {
               </div>
               <h3 className="font-bold text-neutral-800 text-base">Arraste ou Selecione as Fotos da Vistoria</h3>
               <p className="text-xs text-neutral-500 mt-1 max-w-md mx-auto">
-                Selecione as fotos do seu computador ou celular. Cada 2 fotos formarão uma aba oficial na planilha.
+                O nome do arquivo será aplicado automaticamente na legenda da foto. Cada 2 fotos formarão uma aba oficial na planilha.
               </p>
             </div>
 
@@ -748,8 +793,8 @@ export default function RelatorioOrganizacaoWizard() {
                     Fotos Organizadas ({fotos.length}) - Total de {totalPaginas} Aba(s)
                   </h3>
                   {fotos.length > 1 && (
-                    <span className="text-[11px] text-neutral-400 bg-neutral-200/60 px-2 py-0.5 rounded-md font-medium">
-                      Dica: Clique e arraste um card para trocar de posição
+                    <span className="text-[11px] text-neutral-400 bg-neutral-200/60 px-2 py-0.5 rounded-md font-medium hidden sm:inline">
+                      Dica: Arraste para reordenar (o scroll da página acompanha o movimento)
                     </span>
                   )}
                 </div>
@@ -790,7 +835,7 @@ export default function RelatorioOrganizacaoWizard() {
                       {/* Alça de Arraste (Grip Handle) */}
                       <div 
                         className="hidden md:flex items-center self-stretch text-neutral-300 hover:text-neutral-600 cursor-grab active:cursor-grabbing px-1"
-                        title="Segure e arraste para reordenar"
+                        title="Segure e arraste para reordenar (o scroll da tela acompanha)"
                       >
                         <GripVertical size={22} />
                       </div>
@@ -824,11 +869,11 @@ export default function RelatorioOrganizacaoWizard() {
                             updated[index].descricao = e.target.value;
                             setFotos(updated);
                           }}
-                          placeholder="Digite ou clique em um nome chave abaixo..."
+                          placeholder="Digite ou clique em um preset abaixo..."
                           className="w-full h-11 px-3.5 border border-neutral-300 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                         />
 
-                        {/* Nomes Chaves da Obra para Clique Rápido */}
+                        {/* Presets de Locais da Obra para Clique Rápido */}
                         <div className="flex flex-wrap gap-1.5 pt-1">
                           {currentLocais.map((tag) => (
                             <button

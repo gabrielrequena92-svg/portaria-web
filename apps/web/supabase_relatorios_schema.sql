@@ -1,43 +1,13 @@
 -- ==============================================================================
--- SCHEMA SUPABASE: HISTÓRICO DE RELATÓRIOS DE ORGANIZAÇÃO E LIMPEZA
+-- SCHEMA SUPABASE: HISTÓRICO DE RELATÓRIOS DE ORGANIZAÇÃO E CONFIGURAÇÃO DE OBRAS
 -- ==============================================================================
 -- Execute este script no "SQL Editor" do seu painel Supabase
 
--- 1. Criar a Tabela de Histórico de Relatórios
-CREATE TABLE IF NOT EXISTS public.relatorios_historico (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    user_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
-    obra_nome TEXT NOT NULL,
-    semana_ref TEXT,
-    engenheiro TEXT,
-    coordenador TEXT,
-    total_fotos INTEGER DEFAULT 0,
-    tipo_arquivo TEXT DEFAULT 'xlsx', -- 'xlsx' ou 'pdf'
-    arquivo_nome TEXT,
-    status TEXT DEFAULT 'gerado'
-);
-
--- 2. Habilitar Segurança por Linha (RLS)
-ALTER TABLE public.relatorios_historico ENABLE ROW LEVEL SECURITY;
-
--- 3. Políticas de Acesso (Permitir que usuários autenticados leiam e insiram)
-CREATE POLICY "Permitir leitura para usuarios autenticados" 
-ON public.relatorios_historico 
-FOR SELECT 
-TO authenticated 
-USING (true);
-
-CREATE POLICY "Permitir insercao para usuarios autenticados" 
-ON public.relatorios_historico 
-FOR INSERT 
-TO authenticated 
-WITH CHECK (true);
-
--- 4. Criar Tabela de Configurações de Obras (Opcional - Para sincronizar obras entre todos os usuários)
+-- 1. Criar a Tabela de Configurações de Obras
 CREATE TABLE IF NOT EXISTS public.obras_config (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW(),
     nome TEXT UNIQUE NOT NULL,
     codigo TEXT,
     endereco TEXT,
@@ -55,13 +25,58 @@ FOR SELECT
 TO authenticated 
 USING (true);
 
-CREATE POLICY "Permitir insercao e atualizacao de obras para autenticados" 
+CREATE POLICY "Permitir gerenciamento de obras para autenticados" 
 ON public.obras_config 
 FOR ALL 
 TO authenticated 
+USING (true)
+WITH CHECK (true);
+
+-- 2. Criar a Tabela de Histórico de Relatórios
+CREATE TABLE IF NOT EXISTS public.relatorios_historico (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    user_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+    obra_nome TEXT NOT NULL,
+    semana_ref TEXT,
+    engenheiro TEXT,
+    coordenador TEXT,
+    total_fotos INTEGER DEFAULT 0,
+    tipo_arquivo TEXT DEFAULT 'xlsx', -- 'xlsx'
+    arquivo_nome TEXT,
+    arquivo_url TEXT, -- URL pública ou caminho no Supabase Storage
+    status TEXT DEFAULT 'gerado'
+);
+
+-- Garantir que a coluna arquivo_url exista caso a tabela já tenha sido criada antes
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_schema = 'public' 
+        AND table_name = 'relatorios_historico' 
+        AND column_name = 'arquivo_url'
+    ) THEN
+        ALTER TABLE public.relatorios_historico ADD COLUMN arquivo_url TEXT;
+    END IF;
+END $$;
+
+ALTER TABLE public.relatorios_historico ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Permitir leitura de historico para autenticados" 
+ON public.relatorios_historico 
+FOR SELECT 
+TO authenticated 
 USING (true);
 
--- 5. Inserir Obras Iniciais Padrão
+CREATE POLICY "Permitir insercao de historico para autenticados" 
+ON public.relatorios_historico 
+FOR ALL 
+TO authenticated 
+USING (true)
+WITH CHECK (true);
+
+-- 3. Inserir Obras Iniciais Padrão (caso ainda não existam)
 INSERT INTO public.obras_config (nome, codigo, endereco, engenheiro, coordenador, locais)
 VALUES 
 (
