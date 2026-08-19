@@ -164,48 +164,43 @@ export default function RelatorioOrganizacaoWizard() {
     }
   };
 
-  // Upload de Logo com persistência no Supabase Storage
-  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Upload de Logo com persistência direta e segura (DataURL no banco de dados)
+  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Pré-visualização local imediata
-    const localUrl = URL.createObjectURL(file);
-    setReportData(prev => ({ ...prev, logoObra: localUrl }));
-
-    // Upload para a nuvem
     setIsUploadingLogo(true);
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('obraNome', reportData.obraNome || 'obra');
+    const reader = new FileReader();
+    reader.onload = async () => {
+      const dataUrl = reader.result as string;
+      setReportData(prev => ({ ...prev, logoObra: dataUrl }));
+      setIsUploadingLogo(false);
 
-    try {
-      const res = await uploadLogoObra(formData);
-      if (res.success && res.url) {
-        setReportData(prev => ({ ...prev, logoObra: res.url || null }));
-        toast.success('Logo da obra enviada para o Supabase Storage!');
-
-        // Se já tiver nome de obra, salva logo no registro da obra
-        if (reportData.obraNome.trim()) {
+      // Salvar a logo na obra no Supabase
+      if (reportData.obraNome.trim()) {
+        try {
           await saveObra({
             nome: reportData.obraNome.trim().toUpperCase(),
             codigo: reportData.obraCodigo,
             endereco: reportData.endereco,
             engenheiro: reportData.engenheiro,
             coordenador: reportData.coordenador,
-            logo_url: res.url,
+            logo_url: dataUrl,
             locais: currentLocais
           });
+          toast.success('Logo da obra salva com sucesso no banco de dados!');
+        } catch (err) {
+          toast.info('Logo carregada para esta sessão.');
         }
-      } else {
-        toast.info('Logo mantida localmente para este relatório.');
       }
-    } catch (err: any) {
-      toast.error('Erro ao salvar logo na nuvem');
-    } finally {
+    };
+    reader.onerror = () => {
       setIsUploadingLogo(false);
-    }
+      toast.error('Erro ao ler arquivo da logo.');
+    };
+    reader.readAsDataURL(file);
   };
+
 
   const handleAddLocalTag = async () => {
     const tag = novoLocalInput.trim().toUpperCase();

@@ -17,27 +17,69 @@ export interface ReportData {
   logoObra: string | null;
 }
 
-// Converte qualquer URL (blob, http, data URL) para ArrayBuffer e extensão corretos
-async function urlToArrayBuffer(url: string): Promise<{ buffer: ArrayBuffer; extension: 'png' | 'jpeg' }> {
-  if (url.startsWith('data:')) {
-    const mimeMatch = url.match(/^data:image\/([a-zA-Z0-9+]+);base64,/);
-    const mimeExt = mimeMatch ? mimeMatch[1].toLowerCase() : '';
-    const extension: 'png' | 'jpeg' = mimeExt.includes('png') ? 'png' : 'jpeg';
-    
-    const base64Data = url.replace(/^data:image\/[a-zA-Z0-9+]+;base64,/, '');
-    const binaryString = atob(base64Data);
-    const bytes = new Uint8Array(binaryString.length);
-    for (let i = 0; i < binaryString.length; i++) {
-      bytes[i] = binaryString.charCodeAt(i);
-    }
-    return { buffer: bytes.buffer as ArrayBuffer, extension };
+// Converte com segurança e valida qualquer imagem para ArrayBuffer binário limpo (PNG/JPEG)
+async function ensureValidImageBuffer(urlOrData: string): Promise<{ buffer: ArrayBuffer; extension: 'png' | 'jpeg' } | null> {
+  if (!urlOrData || typeof urlOrData !== 'string' || urlOrData.trim().length === 0) {
+    return null;
   }
 
-  const response = await fetch(url);
-  const blob = await response.blob();
-  const arrayBuffer = await blob.arrayBuffer();
-  const extension: 'png' | 'jpeg' = blob.type.includes('png') ? 'png' : 'jpeg';
-  return { buffer: arrayBuffer, extension };
+  // No navegador (Client Side), usamos Canvas para garantir formato binário PNG 100% válido
+  if (typeof window !== 'undefined' && typeof document !== 'undefined') {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => {
+        try {
+          const canvas = document.createElement('canvas');
+          canvas.width = img.naturalWidth || img.width;
+          canvas.height = img.naturalHeight || img.height;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) {
+            resolve(null);
+            return;
+          }
+          ctx.drawImage(img, 0, 0);
+          canvas.toBlob((blob) => {
+            if (!blob) {
+              resolve(null);
+              return;
+            }
+            blob.arrayBuffer().then((buffer) => {
+              resolve({ buffer, extension: 'png' });
+            }).catch(() => resolve(null));
+          }, 'image/png');
+        } catch (e) {
+          console.warn('Erro ao processar imagem no canvas:', e);
+          resolve(null);
+        }
+      };
+      img.onerror = (err) => {
+        console.warn('Erro ao carregar imagem para o Excel:', err);
+        resolve(null);
+      };
+      img.src = urlOrData;
+    });
+  }
+
+  // Fallback para Node.js / Fetch direto
+  try {
+    if (urlOrData.startsWith('data:')) {
+      const base64Data = urlOrData.replace(/^data:image\/[a-zA-Z0-9+]+;base64,/, '');
+      const binaryString = atob(base64Data);
+      const bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+      return { buffer: bytes.buffer as ArrayBuffer, extension: 'png' };
+    }
+
+    const response = await fetch(urlOrData);
+    if (!response.ok) return null;
+    const arrayBuffer = await response.arrayBuffer();
+    return { buffer: arrayBuffer, extension: 'png' };
+  } catch (e) {
+    return null;
+  }
 }
 
 // Extrai ou calcula a tag de semana (ex: W34)
@@ -121,14 +163,12 @@ export async function generateOfficialExcel(data: ReportData, photos: ReportPhot
   // Obra Logo (inserir apenas se houver imagem válida carregada)
   let logoObraId: number | null = null;
   if (data.logoObra && data.logoObra.trim().length > 0) {
-    try {
-      const { buffer: obraBuffer, extension: obraExt } = await urlToArrayBuffer(data.logoObra);
+    const validLogo = await ensureValidImageBuffer(data.logoObra);
+    if (validLogo) {
       logoObraId = workbook.addImage({
-        buffer: obraBuffer,
-        extension: obraExt,
+        buffer: validLogo.buffer,
+        extension: validLogo.extension,
       });
-    } catch (e) {
-      console.warn('Logo da obra não pôde ser convertida para o Excel:', e);
     }
   }
 
@@ -207,7 +247,7 @@ export async function generateOfficialExcel(data: ReportData, photos: ReportPhot
       sheet = newSheet;
     }
 
-    // Inserir Logo da Obra estritamente no intervalo O2:Q6 apenas se existir
+    // Inserir Logo da Obra estritamente no intervalo O2:Q6 apenas se for imagem válida
     if (logoObraId !== null) {
       try {
         sheet.addImage(logoObraId, 'O2:Q6');
@@ -234,15 +274,17 @@ export async function generateOfficialExcel(data: ReportData, photos: ReportPhot
       sheet.getCell('B34').value = `Foto ${String(p1Index + 1).padStart(2, '0')}:`;
       sheet.getCell('B35').value = p1.descricao || '';
 
-      try {
-        const { buffer: p1Buffer, extension: p1Ext } = await urlToArrayBuffer(p1.dataUrl);
-        const imgId1 = workbook.addImage({
-          buffer: p1Buffer,
-          extension: p1Ext,
-        });
-        sheet.addImage(imgId1, 'B14:O29');
-      } catch (e) {
-        console.error('Erro ao adicionar foto 1 na planilha:', e);
+      const validP1 = await ensureValidImageBuffer(p1.dataUrl);
+      if (validP1) {
+        try {
+          const imgId1 = workbook.addImage({
+            buffer: validP1.buffer,
+            extension: validP1.extension,
+          });
+          sheet.addImage(imgId1, 'B14:O29');
+        } catch (e) {
+          console.error('Erro ao adicionar foto 1 na planilha:', e);
+        }
       }
     }
 
@@ -254,15 +296,17 @@ export async function generateOfficialExcel(data: ReportData, photos: ReportPhot
       sheet.getCell('Q34').value = `Foto ${String(p2Index + 1).padStart(2, '0')}:`;
       sheet.getCell('Q35').value = p2.descricao || '';
 
-      try {
-        const { buffer: p2Buffer, extension: p2Ext } = await urlToArrayBuffer(p2.dataUrl);
-        const imgId2 = workbook.addImage({
-          buffer: p2Buffer,
-          extension: p2Ext,
-        });
-        sheet.addImage(imgId2, 'Q14:AD29');
-      } catch (e) {
-        console.error('Erro ao adicionar foto 2 na planilha:', e);
+      const validP2 = await ensureValidImageBuffer(p2.dataUrl);
+      if (validP2) {
+        try {
+          const imgId2 = workbook.addImage({
+            buffer: validP2.buffer,
+            extension: validP2.extension,
+          });
+          sheet.addImage(imgId2, 'Q14:AD29');
+        } catch (e) {
+          console.error('Erro ao adicionar foto 2 na planilha:', e);
+        }
       }
     }
   }
